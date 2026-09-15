@@ -40,7 +40,7 @@ yarn-error.*
 /ios
 /android
 
-# local AI tooling config (not part of the project)
+# local dev assistant config (not part of the project)
 /.claude/
 /AGENTS.md
 /CLAUDE.md
