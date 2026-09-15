@@ -33,7 +33,6 @@ export function AbilityForm({ initial, onSave, onCancel }: AbilityFormProps) {
       cost: category === "Basic" ? cost : undefined,
       charges: category === "Basic" ? charges : undefined,
       ultPoints: category === "Ultimate" ? ultPoints : undefined,
-      isActive: initial?.isActive ?? true,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
     });

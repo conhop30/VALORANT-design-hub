@@ -29,12 +29,7 @@ function AbilitySlotRow({ slot, agent }: { slot: AbilitySlotKey; agent: Agent })
           Ability unavailable (removed)
         </Text>
       )}
-      {resolved.status === "inactive" && (
-        <Text style={[typography.body, styles.unavailable]}>
-          {resolved.record.name} — currently deactivated
-        </Text>
-      )}
-      {resolved.status === "active" && (
+      {resolved.status === "found" && (
         <View style={{ flex: 1 }}>
           <Text style={typography.body}>{resolved.record.name}</Text>
           <Text style={typography.caption}>{resolved.record.description}</Text>

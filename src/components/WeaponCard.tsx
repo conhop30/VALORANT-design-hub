@@ -32,7 +32,6 @@ export function WeaponCard({
             <Text style={typography.subtitle}>{weapon.name}</Text>
             <View style={styles.badgeRow}>
               <Badge label={weapon.category} color="#7CA9D8" />
-              {!weapon.isActive && <Badge label="Inactive" muted />}
             </View>
           </View>
           <Text style={typography.caption}>{weapon.cost}cr</Text>

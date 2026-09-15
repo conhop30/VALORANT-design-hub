@@ -86,7 +86,7 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
       {ABILITY_SLOT_KEYS.map((slot) => {
         const wantedCategory = SLOT_CATEGORY[slot];
         const options = allAbilities
-          .filter((a) => a.category === wantedCategory && a.isActive)
+          .filter((a) => a.category === wantedCategory)
           .map((a) => ({ id: a.id, label: a.name }));
         return (
           <SelectField
@@ -95,7 +95,7 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
             options={options}
             value={abilityIds[slot]}
             onChange={(id) => setAbilityIds((prev) => ({ ...prev, [slot]: id }))}
-            emptyMessage={`No active ${wantedCategory} abilities yet — create one first.`}
+            emptyMessage={`No ${wantedCategory} abilities yet — create one first.`}
           />
         );
       })}

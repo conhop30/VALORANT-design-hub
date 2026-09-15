@@ -38,7 +38,6 @@ export function AbilityCard({
             <Text style={typography.subtitle}>{ability.name}</Text>
             <View style={styles.badgeRow}>
               <Badge label={ability.category} color={categoryColor[ability.category]} />
-              {!ability.isActive && <Badge label="Inactive" muted />}
             </View>
           </View>
         </View>

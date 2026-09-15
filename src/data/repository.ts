@@ -1,4 +1,4 @@
-import { Ability, Agent, AudioSettings, FeatureFlags, Weapon } from "../types/entities";
+import { Ability, Agent, AudioSettings, FeatureFlags, UiSettings, Weapon } from "../types/entities";
 import { persistence } from "./persistenceImpl";
 import { TableName } from "./persistenceTypes";
 
@@ -40,4 +40,8 @@ export const configRepo = {
     attempt(() => persistence.getAudioSettings()),
   setAudioSettings: (settings: AudioSettings): Promise<Result<void>> =>
     attempt(() => persistence.setAudioSettings(settings)),
+  getUiSettings: (): Promise<Result<UiSettings>> =>
+    attempt(() => persistence.getUiSettings()),
+  setUiSettings: (settings: UiSettings): Promise<Result<void>> =>
+    attempt(() => persistence.setUiSettings(settings)),
 };

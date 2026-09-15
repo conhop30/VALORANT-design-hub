@@ -42,7 +42,6 @@ export interface Ability {
   charges?: number;
   /** Ult points required to charge — meaningful only when category is Ultimate. */
   ultPoints?: number;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -59,7 +58,6 @@ export interface Weapon {
     mid: number;
     far: number;
   };
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -96,6 +94,14 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   musicEnabled: false, // opt-in: browsers block autoplay, and it's a user preference
   musicVolume: 0.5,
   sfxEnabled: true,
+};
+
+export interface UiSettings {
+  confirmDeletes: boolean;
+}
+
+export const DEFAULT_UI_SETTINGS: UiSettings = {
+  confirmDeletes: true,
 };
 
 export type EntityKind = "agent" | "weapon" | "ability";

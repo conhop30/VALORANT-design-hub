@@ -5,15 +5,14 @@ import {
   AudioSettings,
   DEFAULT_AUDIO_SETTINGS,
   DEFAULT_FEATURE_FLAGS,
+  DEFAULT_UI_SETTINGS,
   FeatureFlags,
+  UiSettings,
   Weapon,
 } from "../types/entities";
 import { abilityRepo, agentRepo, configRepo, weaponRepo } from "./repository";
 
-export type RefStatus<T> =
-  | { status: "active"; record: T }
-  | { status: "inactive"; record: T }
-  | { status: "missing" };
+export type RefStatus<T> = { status: "found"; record: T } | { status: "missing" };
 
 /**
  * Derives status from an already-selected record. Kept as a plain function
@@ -23,11 +22,9 @@ export type RefStatus<T> =
  * infinite render loop (`useSyncExternalStore` "getSnapshot should be cached").
  * Select the raw record with a store selector, then call this on the result.
  */
-export function toRefStatus<T extends { isActive: boolean }>(
-  record: T | undefined
-): RefStatus<T> {
+export function toRefStatus<T>(record: T | undefined): RefStatus<T> {
   if (!record) return { status: "missing" };
-  return { status: record.isActive ? "active" : "inactive", record };
+  return { status: "found", record };
 }
 
 interface DesignStore {
@@ -37,6 +34,7 @@ interface DesignStore {
   agents: Record<string, Agent>;
   featureFlags: FeatureFlags;
   audioSettings: AudioSettings;
+  uiSettings: UiSettings;
   lastError: string | null;
 
   hydrate: () => Promise<void>;
@@ -53,6 +51,10 @@ interface DesignStore {
     key: K,
     value: AudioSettings[K]
   ) => Promise<void>;
+  setUiSetting: <K extends keyof UiSettings>(
+    key: K,
+    value: UiSettings[K]
+  ) => Promise<void>;
 }
 
 function toRecord<T extends { id: string }>(items: T[]): Record<string, T> {
@@ -66,6 +68,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
   agents: {},
   featureFlags: DEFAULT_FEATURE_FLAGS,
   audioSettings: DEFAULT_AUDIO_SETTINGS,
+  uiSettings: DEFAULT_UI_SETTINGS,
   lastError: null,
 
   hydrate: async () => {
@@ -74,12 +77,13 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       set({ lastError: init.error });
       return;
     }
-    const [abilities, weapons, agents, flags, audio] = await Promise.all([
+    const [abilities, weapons, agents, flags, audio, ui] = await Promise.all([
       abilityRepo.list(),
       weaponRepo.list(),
       agentRepo.list(),
       configRepo.getFeatureFlags(),
       configRepo.getAudioSettings(),
+      configRepo.getUiSettings(),
     ]);
     set({
       abilities: abilities.ok ? toRecord(abilities.value) : {},
@@ -87,6 +91,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       agents: agents.ok ? toRecord(agents.value) : {},
       featureFlags: flags.ok ? flags.value : DEFAULT_FEATURE_FLAGS,
       audioSettings: audio.ok ? audio.value : DEFAULT_AUDIO_SETTINGS,
+      uiSettings: ui.ok ? ui.value : DEFAULT_UI_SETTINGS,
       lastError: !abilities.ok
         ? abilities.error
         : !weapons.ok
@@ -97,6 +102,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         ? flags.error
         : !audio.ok
         ? audio.error
+        : !ui.ok
+        ? ui.error
         : null,
       hydrated: true,
     });
@@ -194,5 +201,15 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       return;
     }
     set({ audioSettings: next });
+  },
+
+  setUiSetting: async (key, value) => {
+    const next = { ...get().uiSettings, [key]: value };
+    const res = await configRepo.setUiSettings(next);
+    if (!res.ok) {
+      set({ lastError: res.error });
+      return;
+    }
+    set({ uiSettings: next });
   },
 }));

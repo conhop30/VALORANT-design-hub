@@ -20,6 +20,7 @@ import { AgentForm } from "../components/forms/AgentForm";
 import { WeaponForm } from "../components/forms/WeaponForm";
 import { AbilityForm } from "../components/forms/AbilityForm";
 import { FeatureFlagsSheet } from "../components/FeatureFlagsSheet";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Button } from "../components/Button";
 import { useClickSound } from "../audio/useClickSound";
 import { Agent, Weapon, Ability } from "../types/entities";
@@ -31,6 +32,7 @@ type SheetMode =
   | { kind: "weapon"; weapon?: Weapon }
   | { kind: "ability"; ability?: Ability }
   | { kind: "settings" };
+type DeleteRequest = { library: Library; id: string; name: string };
 
 export function Hub() {
   const playClick = useClickSound();
@@ -43,6 +45,8 @@ export function Hub() {
   const weapons = useDesignStore((s) => s.weapons);
   const abilities = useDesignStore((s) => s.abilities);
   const flags = useDesignStore((s) => s.featureFlags);
+  const uiSettings = useDesignStore((s) => s.uiSettings);
+  const setUiSetting = useDesignStore((s) => s.setUiSetting);
 
   const saveAgent = useDesignStore((s) => s.saveAgent);
   const removeAgent = useDesignStore((s) => s.removeAgent);
@@ -54,6 +58,21 @@ export function Hub() {
   const [library, setLibrary] = useState<Library>("agents");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetMode>({ kind: "none" });
+  const [deleteRequest, setDeleteRequest] = useState<DeleteRequest | null>(null);
+
+  const performDelete = (library: Library, id: string) => {
+    if (library === "agents") removeAgent(id);
+    else if (library === "weapons") removeWeapon(id);
+    else removeAbility(id);
+  };
+
+  const requestDelete = (library: Library, id: string, name: string) => {
+    if (!uiSettings.confirmDeletes) {
+      performDelete(library, id);
+      return;
+    }
+    setDeleteRequest({ library, id, name });
+  };
 
   useEffect(() => {
     hydrate().then(seedIfEmpty);
@@ -82,7 +101,7 @@ export function Hub() {
               expanded={expandedId === item.id}
               onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
               onEdit={() => setSheet({ kind: "agent", agent: item })}
-              onDelete={() => removeAgent(item.id)}
+              onDelete={() => requestDelete("agents", item.id, item.name)}
             />
           ))}
         </ScrollView>
@@ -100,7 +119,7 @@ export function Hub() {
               expanded={expandedId === item.id}
               onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
               onEdit={() => setSheet({ kind: "weapon", weapon: item })}
-              onDelete={() => removeWeapon(item.id)}
+              onDelete={() => requestDelete("weapons", item.id, item.name)}
             />
           ))}
         </ScrollView>
@@ -117,7 +136,7 @@ export function Hub() {
             expanded={expandedId === item.id}
             onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
             onEdit={() => setSheet({ kind: "ability", ability: item })}
-            onDelete={() => removeAbility(item.id)}
+            onDelete={() => requestDelete("abilities", item.id, item.name)}
           />
         ))}
       </ScrollView>
@@ -221,6 +240,20 @@ export function Hub() {
         )}
         {sheet.kind === "settings" && <FeatureFlagsSheet onClose={closeSheet} />}
       </Sheet>
+
+      {deleteRequest && (
+        <ConfirmDialog
+          key={deleteRequest.id}
+          title={`Delete "${deleteRequest.name}"?`}
+          message="This can't be undone."
+          onCancel={() => setDeleteRequest(null)}
+          onConfirm={(suppressFuture) => {
+            performDelete(deleteRequest.library, deleteRequest.id);
+            if (suppressFuture) setUiSetting("confirmDeletes", false);
+            setDeleteRequest(null);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

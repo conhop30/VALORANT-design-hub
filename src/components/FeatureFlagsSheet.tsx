@@ -57,6 +57,8 @@ export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
   const setFlag = useDesignStore((s) => s.setFeatureFlag);
   const audio = useDesignStore((s) => s.audioSettings);
   const setAudioSetting = useDesignStore((s) => s.setAudioSetting);
+  const uiSettings = useDesignStore((s) => s.uiSettings);
+  const setUiSetting = useDesignStore((s) => s.setUiSetting);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
   const [transferBusy, setTransferBusy] = useState(false);
 
@@ -116,6 +118,16 @@ export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
           onChange={(v) => setFlag(row.key, v)}
         />
       ))}
+
+      <View style={styles.divider} />
+      <Text style={typography.subtitle}>General</Text>
+
+      <ToggleRow
+        label="Confirm before deleting"
+        hint="Show a confirmation dialog before deleting agents, weapons, or abilities."
+        value={uiSettings.confirmDeletes}
+        onChange={(v) => setUiSetting("confirmDeletes", v)}
+      />
 
       <View style={styles.divider} />
       <Text style={typography.subtitle}>Audio</Text>

@@ -1,4 +1,4 @@
-import { Ability, Agent, AudioSettings, FeatureFlags, Weapon } from "../types/entities";
+import { Ability, Agent, AudioSettings, FeatureFlags, UiSettings, Weapon } from "../types/entities";
 
 export type TableName = "abilities" | "weapons" | "agents";
 
@@ -24,4 +24,6 @@ export interface PersistenceAdapter {
   setFeatureFlags(flags: FeatureFlags): Promise<void>;
   getAudioSettings(): Promise<AudioSettings>;
   setAudioSettings(settings: AudioSettings): Promise<void>;
+  getUiSettings(): Promise<UiSettings>;
+  setUiSettings(settings: UiSettings): Promise<void>;
 }

@@ -3,7 +3,9 @@ import {
   AudioSettings,
   DEFAULT_AUDIO_SETTINGS,
   DEFAULT_FEATURE_FLAGS,
+  DEFAULT_UI_SETTINGS,
   FeatureFlags,
+  UiSettings,
 } from "../types/entities";
 import { EntityMap, PersistenceAdapter, TableName } from "./persistenceTypes";
 
@@ -11,6 +13,7 @@ const KEY_PREFIX = "valorant-agent-designer:";
 const tableKey = (table: TableName) => `${KEY_PREFIX}${table}`;
 const flagsKey = `${KEY_PREFIX}feature_flags`;
 const audioKey = `${KEY_PREFIX}audio_settings`;
+const uiKey = `${KEY_PREFIX}ui_settings`;
 
 function readTable<K extends TableName>(table: K): EntityMap[K][] {
   const raw = localStorage.getItem(tableKey(table));
@@ -78,5 +81,14 @@ export const persistence: PersistenceAdapter = {
 
   async setAudioSettings(settings: AudioSettings) {
     localStorage.setItem(audioKey, JSON.stringify(settings));
+  },
+
+  async getUiSettings() {
+    const raw = localStorage.getItem(uiKey);
+    return raw ? JSON.parse(raw) : DEFAULT_UI_SETTINGS;
+  },
+
+  async setUiSettings(settings: UiSettings) {
+    localStorage.setItem(uiKey, JSON.stringify(settings));
   },
 };

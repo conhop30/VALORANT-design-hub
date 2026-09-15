@@ -43,7 +43,6 @@ export function WeaponForm({ initial, onSave, onCancel }: WeaponFormProps) {
       fireRate: fireRate!,
       magazineSize: magazineSize!,
       damage: { close: close!, mid: mid!, far: far! },
-      isActive: initial?.isActive ?? true,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
     });
