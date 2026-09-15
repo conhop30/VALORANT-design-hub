@@ -21,9 +21,18 @@ import { WeaponForm } from "../components/forms/WeaponForm";
 import { AbilityForm } from "../components/forms/AbilityForm";
 import { FeatureFlagsSheet } from "../components/FeatureFlagsSheet";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ListToolbar } from "../components/ListToolbar";
 import { Button } from "../components/Button";
 import { useClickSound } from "../audio/useClickSound";
-import { Agent, Weapon, Ability } from "../types/entities";
+import {
+  ABILITY_CATEGORIES,
+  Agent,
+  Weapon,
+  Ability,
+  ROLES,
+  WEAPON_CATEGORIES,
+} from "../types/entities";
+import { applySearchAndSort, SortOption } from "../utils/listQuery";
 
 type Library = "agents" | "weapons" | "abilities";
 type SheetMode =
@@ -33,6 +42,27 @@ type SheetMode =
   | { kind: "ability"; ability?: Ability }
   | { kind: "settings" };
 type DeleteRequest = { library: Library; id: string; name: string };
+
+interface ListQuery {
+  search: string;
+  sort: SortOption;
+  filter: string;
+}
+
+const DEFAULT_LIST_QUERY: ListQuery = { search: "", sort: "name-asc", filter: "all" };
+
+const ROLE_FILTER_OPTIONS = [
+  { id: "all", label: "All roles" },
+  ...ROLES.map((r) => ({ id: r, label: r })),
+];
+const WEAPON_FILTER_OPTIONS = [
+  { id: "all", label: "All categories" },
+  ...WEAPON_CATEGORIES.map((c) => ({ id: c, label: c })),
+];
+const ABILITY_FILTER_OPTIONS = [
+  { id: "all", label: "All categories" },
+  ...ABILITY_CATEGORIES.map((c) => ({ id: c, label: c })),
+];
 
 export function Hub() {
   const playClick = useClickSound();
@@ -59,6 +89,14 @@ export function Hub() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetMode>({ kind: "none" });
   const [deleteRequest, setDeleteRequest] = useState<DeleteRequest | null>(null);
+  const [queries, setQueries] = useState<Record<Library, ListQuery>>({
+    agents: { ...DEFAULT_LIST_QUERY },
+    weapons: { ...DEFAULT_LIST_QUERY },
+    abilities: { ...DEFAULT_LIST_QUERY },
+  });
+  const query = queries[library];
+  const updateQuery = (patch: Partial<ListQuery>) =>
+    setQueries((prev) => ({ ...prev, [library]: { ...prev[library], ...patch } }));
 
   const performDelete = (library: Library, id: string) => {
     if (library === "agents") removeAgent(id);
@@ -90,56 +128,113 @@ export function Hub() {
 
   const renderList = () => {
     if (library === "agents") {
-      const items = Object.values(agents);
-      if (items.length === 0) return <EmptyState label="No agents yet." />;
+      const raw = Object.values(agents);
+      if (raw.length === 0) return <EmptyState label="No agents yet." />;
+      const items = applySearchAndSort(raw, query.search, query.sort).filter(
+        (a) => query.filter === "all" || a.role === query.filter
+      );
       return (
-        <ScrollView contentContainerStyle={styles.list}>
-          {items.map((item) => (
-            <AgentCard
-              key={item.id}
-              agent={item}
-              expanded={expandedId === item.id}
-              onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
-              onEdit={() => setSheet({ kind: "agent", agent: item })}
-              onDelete={() => requestDelete("agents", item.id, item.name)}
-            />
-          ))}
-        </ScrollView>
+        <>
+          <ListToolbar
+            search={query.search}
+            onSearchChange={(v) => updateQuery({ search: v })}
+            sort={query.sort}
+            onSortChange={(v) => updateQuery({ sort: v })}
+            filterLabel="Role"
+            filterOptions={ROLE_FILTER_OPTIONS}
+            filterValue={query.filter}
+            onFilterChange={(v) => updateQuery({ filter: v })}
+          />
+          {items.length === 0 ? (
+            <EmptyState label="No agents match your search." />
+          ) : (
+            <ScrollView contentContainerStyle={styles.list}>
+              {items.map((item) => (
+                <AgentCard
+                  key={item.id}
+                  agent={item}
+                  expanded={expandedId === item.id}
+                  onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
+                  onEdit={() => setSheet({ kind: "agent", agent: item })}
+                  onDelete={() => requestDelete("agents", item.id, item.name)}
+                />
+              ))}
+            </ScrollView>
+          )}
+        </>
       );
     }
     if (library === "weapons") {
-      const items = Object.values(weapons);
-      if (items.length === 0) return <EmptyState label="No weapons yet." />;
+      const raw = Object.values(weapons);
+      if (raw.length === 0) return <EmptyState label="No weapons yet." />;
+      const items = applySearchAndSort(raw, query.search, query.sort).filter(
+        (w) => query.filter === "all" || w.category === query.filter
+      );
       return (
-        <ScrollView contentContainerStyle={styles.list}>
-          {items.map((item) => (
-            <WeaponCard
-              key={item.id}
-              weapon={item}
-              expanded={expandedId === item.id}
-              onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
-              onEdit={() => setSheet({ kind: "weapon", weapon: item })}
-              onDelete={() => requestDelete("weapons", item.id, item.name)}
-            />
-          ))}
-        </ScrollView>
+        <>
+          <ListToolbar
+            search={query.search}
+            onSearchChange={(v) => updateQuery({ search: v })}
+            sort={query.sort}
+            onSortChange={(v) => updateQuery({ sort: v })}
+            filterLabel="Category"
+            filterOptions={WEAPON_FILTER_OPTIONS}
+            filterValue={query.filter}
+            onFilterChange={(v) => updateQuery({ filter: v })}
+          />
+          {items.length === 0 ? (
+            <EmptyState label="No weapons match your search." />
+          ) : (
+            <ScrollView contentContainerStyle={styles.list}>
+              {items.map((item) => (
+                <WeaponCard
+                  key={item.id}
+                  weapon={item}
+                  expanded={expandedId === item.id}
+                  onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
+                  onEdit={() => setSheet({ kind: "weapon", weapon: item })}
+                  onDelete={() => requestDelete("weapons", item.id, item.name)}
+                />
+              ))}
+            </ScrollView>
+          )}
+        </>
       );
     }
-    const items = Object.values(abilities);
-    if (items.length === 0) return <EmptyState label="No abilities yet." />;
+    const raw = Object.values(abilities);
+    if (raw.length === 0) return <EmptyState label="No abilities yet." />;
+    const items = applySearchAndSort(raw, query.search, query.sort).filter(
+      (a) => query.filter === "all" || a.category === query.filter
+    );
     return (
-      <ScrollView contentContainerStyle={styles.list}>
-        {items.map((item) => (
-          <AbilityCard
-            key={item.id}
-            ability={item}
-            expanded={expandedId === item.id}
-            onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
-            onEdit={() => setSheet({ kind: "ability", ability: item })}
-            onDelete={() => requestDelete("abilities", item.id, item.name)}
-          />
-        ))}
-      </ScrollView>
+      <>
+        <ListToolbar
+          search={query.search}
+          onSearchChange={(v) => updateQuery({ search: v })}
+          sort={query.sort}
+          onSortChange={(v) => updateQuery({ sort: v })}
+          filterLabel="Category"
+          filterOptions={ABILITY_FILTER_OPTIONS}
+          filterValue={query.filter}
+          onFilterChange={(v) => updateQuery({ filter: v })}
+        />
+        {items.length === 0 ? (
+          <EmptyState label="No abilities match your search." />
+        ) : (
+          <ScrollView contentContainerStyle={styles.list}>
+            {items.map((item) => (
+              <AbilityCard
+                key={item.id}
+                ability={item}
+                expanded={expandedId === item.id}
+                onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
+                onEdit={() => setSheet({ kind: "ability", ability: item })}
+                onDelete={() => requestDelete("abilities", item.id, item.name)}
+              />
+            ))}
+          </ScrollView>
+        )}
+      </>
     );
   };
 

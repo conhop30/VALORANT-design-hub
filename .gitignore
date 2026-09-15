@@ -36,6 +36,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# dev-only test tooling output (regenerated on every run, see scripts/jestDevReporter.js)
+.devlogs/
+coverage/
+
 # generated native folders
 /ios
 /android
