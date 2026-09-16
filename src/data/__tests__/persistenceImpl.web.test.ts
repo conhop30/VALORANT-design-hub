@@ -106,6 +106,33 @@ describe("web persistence adapter", () => {
     expect(stored.abilities.X.ultPoints).toBe(7);
   });
 
+  it("heals a legacy agent record saved before abilities were folded inline, instead of crashing", async () => {
+    // Shape from before the refactor: `abilityIds` (foreign keys into a
+    // separate abilities table), no `abilities` field at all.
+    (global as any).localStorage.setItem(
+      "valorant-agent-designer:agents",
+      JSON.stringify([
+        {
+          id: "legacy-1",
+          name: "Legacy Agent",
+          role: "Duelist",
+          abilityIds: { C: "old-ability-1", Q: "old-ability-2", E: "old-ability-3", X: "old-ability-4" },
+          createdAt: "t",
+          updatedAt: "t",
+        },
+      ])
+    );
+
+    const [stored] = await persistence.getAll("agents");
+
+    expect(stored.abilities).toEqual({
+      C: EMPTY_AGENT_ABILITY,
+      Q: EMPTY_AGENT_ABILITY,
+      E: EMPTY_AGENT_ABILITY,
+      X: EMPTY_AGENT_ABILITY,
+    });
+  });
+
   it("feature flags default to DEFAULT_FEATURE_FLAGS until set", async () => {
     expect(await persistence.getFeatureFlags()).toEqual(DEFAULT_FEATURE_FLAGS);
   });

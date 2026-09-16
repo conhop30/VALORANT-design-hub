@@ -10,6 +10,7 @@ import {
   Weapon,
 } from "../types/entities";
 import { EntityMap, PersistenceAdapter, TableName } from "./persistenceTypes";
+import { normalizeAgentAbilities } from "./normalizeAgent";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -107,12 +108,18 @@ function agentToRow(a: Agent) {
 }
 
 function rowToAgent(r: any): Agent {
+  let rawAbilities: unknown;
+  try {
+    rawAbilities = JSON.parse(r.abilities_json);
+  } catch {
+    rawAbilities = undefined;
+  }
   return {
     id: r.id,
     name: r.name,
     role: r.role,
     bio: r.bio ?? undefined,
-    abilities: JSON.parse(r.abilities_json),
+    abilities: normalizeAgentAbilities(rawAbilities),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };

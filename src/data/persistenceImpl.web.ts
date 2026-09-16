@@ -1,4 +1,5 @@
 import {
+  Agent,
   AudioSettings,
   DEFAULT_AUDIO_SETTINGS,
   DEFAULT_FEATURE_FLAGS,
@@ -7,6 +8,7 @@ import {
   UiSettings,
 } from "../types/entities";
 import { EntityMap, PersistenceAdapter, TableName } from "./persistenceTypes";
+import { normalizeAgentAbilities } from "./normalizeAgent";
 
 const KEY_PREFIX = "valorant-agent-designer:";
 const tableKey = (table: TableName) => `${KEY_PREFIX}${table}`;
@@ -29,7 +31,14 @@ export const persistence: PersistenceAdapter = {
   },
 
   async getAll(table) {
-    return readTable(table);
+    const rows = readTable(table);
+    if (table === "agents") {
+      return (rows as Agent[]).map((r) => ({
+        ...r,
+        abilities: normalizeAgentAbilities(r.abilities),
+      })) as EntityMap[typeof table][];
+    }
+    return rows;
   },
 
   async upsert(table, row) {

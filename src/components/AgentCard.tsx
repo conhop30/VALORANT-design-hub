@@ -1,6 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Agent, AgentAbility, AbilitySlotKey, ABILITY_SLOT_KEYS } from "../types/entities";
+import {
+  Agent,
+  AgentAbility,
+  AbilitySlotKey,
+  ABILITY_SLOT_KEYS,
+  EMPTY_AGENT_ABILITY,
+} from "../types/entities";
 import { colors, roleColors, spacing, typography } from "../theme";
 import { ExpandableCard } from "./ExpandableCard";
 import { Badge } from "./Badge";
@@ -62,7 +68,7 @@ export function AgentCard({ agent, expanded, onToggle, onEdit, onDelete }: Agent
     >
       {agent.bio && <Text style={typography.body}>{agent.bio}</Text>}
       {ABILITY_SLOT_KEYS.map((slot) => (
-        <AbilitySlotRow key={slot} slot={slot} ability={agent.abilities[slot]} />
+        <AbilitySlotRow key={slot} slot={slot} ability={agent.abilities?.[slot] ?? EMPTY_AGENT_ABILITY} />
       ))}
       <View style={styles.actions}>
         <Button label="Edit" variant="secondary" onPress={onEdit} />

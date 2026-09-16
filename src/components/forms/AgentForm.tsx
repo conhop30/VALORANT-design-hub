@@ -24,10 +24,10 @@ interface AgentFormProps {
 
 function defaultAbilities(initial?: Agent): Record<AbilitySlotKey, AgentAbility> {
   return {
-    C: initial?.abilities.C ?? { ...EMPTY_AGENT_ABILITY },
-    Q: initial?.abilities.Q ?? { ...EMPTY_AGENT_ABILITY },
-    E: initial?.abilities.E ?? { ...EMPTY_AGENT_ABILITY },
-    X: initial?.abilities.X ?? { ...EMPTY_AGENT_ABILITY },
+    C: initial?.abilities?.C ?? { ...EMPTY_AGENT_ABILITY },
+    Q: initial?.abilities?.Q ?? { ...EMPTY_AGENT_ABILITY },
+    E: initial?.abilities?.E ?? { ...EMPTY_AGENT_ABILITY },
+    X: initial?.abilities?.X ?? { ...EMPTY_AGENT_ABILITY },
   };
 }
 
