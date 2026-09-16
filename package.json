@@ -26,6 +26,8 @@
     "@types/react": "~19.2.2",
     "@types/uuid": "^10.0.0",
     "concurrently": "^10.0.5",
+    "electron": "^44.4.1",
+    "electron-builder": "^26.15.3",
     "jest": "^30.5.1",
     "ts-jest": "^29.4.12",
     "typescript": "~6.0.3"
@@ -37,7 +39,32 @@
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch --coverage",
-    "dev": "concurrently -n metro,tests -c blue,green \"npm:start\" \"npm:test:watch\""
+    "dev": "concurrently -n metro,tests -c blue,green \"npm:start\" \"npm:test:watch\"",
+    "export:web": "expo export --platform web --output-dir dist",
+    "electron": "npm run export:web && electron electron/main.js",
+    "electron:build": "npm run export:web && electron-builder"
   },
-  "private": true
+  "private": true,
+  "build": {
+    "appId": "com.valorantdesignhub.app",
+    "productName": "VALORANT Design Hub",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "dist/**/*"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
 }
