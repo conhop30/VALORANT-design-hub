@@ -3,8 +3,6 @@ jest.mock("../repository", () => ({
   agentRepo: { list: jest.fn(), save: jest.fn(), remove: jest.fn() },
   configRepo: {
     init: jest.fn(),
-    getFeatureFlags: jest.fn(),
-    setFeatureFlags: jest.fn(),
     getAudioSettings: jest.fn(),
     setAudioSettings: jest.fn(),
     getUiSettings: jest.fn(),

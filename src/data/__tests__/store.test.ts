@@ -3,8 +3,6 @@ jest.mock("../repository", () => ({
   agentRepo: { list: jest.fn(), save: jest.fn(), remove: jest.fn() },
   configRepo: {
     init: jest.fn(),
-    getFeatureFlags: jest.fn(),
-    setFeatureFlags: jest.fn(),
     getAudioSettings: jest.fn(),
     setAudioSettings: jest.fn(),
     getUiSettings: jest.fn(),
@@ -15,7 +13,6 @@ jest.mock("../repository", () => ({
 import {
   Agent,
   DEFAULT_AUDIO_SETTINGS,
-  DEFAULT_FEATURE_FLAGS,
   DEFAULT_UI_SETTINGS,
   EMPTY_AGENT_ABILITY,
 } from "../../types/entities";
@@ -55,7 +52,6 @@ beforeEach(() => {
     hydrated: false,
     weapons: {},
     agents: {},
-    featureFlags: DEFAULT_FEATURE_FLAGS,
     audioSettings: DEFAULT_AUDIO_SETTINGS,
     uiSettings: DEFAULT_UI_SETTINGS,
     lastError: null,
@@ -67,7 +63,6 @@ describe("useDesignStore", () => {
     mocked.configRepo.init.mockResolvedValue(ok(undefined));
     mocked.weaponRepo.list.mockResolvedValue(ok([]));
     mocked.agentRepo.list.mockResolvedValue(ok([agent]));
-    mocked.configRepo.getFeatureFlags.mockResolvedValue(ok(DEFAULT_FEATURE_FLAGS));
     mocked.configRepo.getAudioSettings.mockResolvedValue(ok(DEFAULT_AUDIO_SETTINGS));
     mocked.configRepo.getUiSettings.mockResolvedValue(ok(DEFAULT_UI_SETTINGS));
 

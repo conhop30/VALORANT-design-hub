@@ -24,7 +24,13 @@
     "plugins": [
       "expo-sqlite",
       "expo-audio",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow VALORANT Design Hub to access your photos to pick agent and ability artwork."
+        }
+      ]
     ]
   }
 }

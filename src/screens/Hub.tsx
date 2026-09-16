@@ -17,9 +17,10 @@ import { WeaponCard } from "../components/WeaponCard";
 import { Sheet } from "../components/Sheet";
 import { AgentForm } from "../components/forms/AgentForm";
 import { WeaponForm } from "../components/forms/WeaponForm";
-import { FeatureFlagsSheet } from "../components/FeatureFlagsSheet";
+import { SettingsSheet } from "../components/SettingsSheet";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ListToolbar } from "../components/ListToolbar";
+import { HeroBackdrop } from "../components/HeroBackdrop";
 import { Button } from "../components/Button";
 import { useClickSound } from "../audio/useClickSound";
 import { Agent, Weapon, ROLES, WEAPON_CATEGORIES } from "../types/entities";
@@ -59,7 +60,6 @@ export function Hub() {
 
   const agents = useDesignStore((s) => s.agents);
   const weapons = useDesignStore((s) => s.weapons);
-  const flags = useDesignStore((s) => s.featureFlags);
   const uiSettings = useDesignStore((s) => s.uiSettings);
   const setUiSetting = useDesignStore((s) => s.setUiSetting);
 
@@ -182,11 +182,12 @@ export function Hub() {
     );
   };
 
-  const creationEnabled =
-    library === "agents" ? flags.agentCreationEnabled : flags.weaponCreationEnabled;
+  const expandedHeroUri =
+    library === "agents" && expandedId ? agents[expandedId]?.heroImageUri : undefined;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      {expandedHeroUri && <HeroBackdrop key={expandedId} uri={expandedHeroUri} />}
       <View style={styles.content}>
         <View style={styles.topBar}>
           <Text style={typography.title}>Design Hub</Text>
@@ -220,16 +221,14 @@ export function Hub() {
 
         {renderList()}
 
-        {creationEnabled && (
-          <View style={styles.fabWrap}>
-            <Button
-              label={`+ New ${library === "agents" ? "Agent" : "Weapon"}`}
-              onPress={() =>
-                setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
-              }
-            />
-          </View>
-        )}
+        <View style={styles.fabWrap}>
+          <Button
+            label={`+ New ${library === "agents" ? "Agent" : "Weapon"}`}
+            onPress={() =>
+              setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
+            }
+          />
+        </View>
       </View>
 
       <Sheet visible={sheet.kind !== "none"} onClose={closeSheet}>
@@ -255,7 +254,7 @@ export function Hub() {
             }}
           />
         )}
-        {sheet.kind === "settings" && <FeatureFlagsSheet onClose={closeSheet} />}
+        {sheet.kind === "settings" && <SettingsSheet onClose={closeSheet} />}
       </Sheet>
 
       {deleteRequest && (

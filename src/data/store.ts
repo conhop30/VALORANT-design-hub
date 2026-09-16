@@ -3,9 +3,7 @@ import {
   Agent,
   AudioSettings,
   DEFAULT_AUDIO_SETTINGS,
-  DEFAULT_FEATURE_FLAGS,
   DEFAULT_UI_SETTINGS,
-  FeatureFlags,
   UiSettings,
   Weapon,
 } from "../types/entities";
@@ -15,7 +13,6 @@ interface DesignStore {
   hydrated: boolean;
   weapons: Record<string, Weapon>;
   agents: Record<string, Agent>;
-  featureFlags: FeatureFlags;
   audioSettings: AudioSettings;
   uiSettings: UiSettings;
   lastError: string | null;
@@ -27,7 +24,6 @@ interface DesignStore {
   removeWeapon: (id: string) => Promise<boolean>;
   saveAgent: (a: Agent) => Promise<boolean>;
   removeAgent: (id: string) => Promise<boolean>;
-  setFeatureFlag: (key: keyof FeatureFlags, value: boolean) => Promise<void>;
   setAudioSetting: <K extends keyof AudioSettings>(
     key: K,
     value: AudioSettings[K]
@@ -46,7 +42,6 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
   hydrated: false,
   weapons: {},
   agents: {},
-  featureFlags: DEFAULT_FEATURE_FLAGS,
   audioSettings: DEFAULT_AUDIO_SETTINGS,
   uiSettings: DEFAULT_UI_SETTINGS,
   lastError: null,
@@ -57,25 +52,21 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       set({ lastError: init.error });
       return;
     }
-    const [weapons, agents, flags, audio, ui] = await Promise.all([
+    const [weapons, agents, audio, ui] = await Promise.all([
       weaponRepo.list(),
       agentRepo.list(),
-      configRepo.getFeatureFlags(),
       configRepo.getAudioSettings(),
       configRepo.getUiSettings(),
     ]);
     set({
       weapons: weapons.ok ? toRecord(weapons.value) : {},
       agents: agents.ok ? toRecord(agents.value) : {},
-      featureFlags: flags.ok ? flags.value : DEFAULT_FEATURE_FLAGS,
       audioSettings: audio.ok ? audio.value : DEFAULT_AUDIO_SETTINGS,
       uiSettings: ui.ok ? ui.value : DEFAULT_UI_SETTINGS,
       lastError: !weapons.ok
         ? weapons.error
         : !agents.ok
         ? agents.error
-        : !flags.ok
-        ? flags.error
         : !audio.ok
         ? audio.error
         : !ui.ok
@@ -133,16 +124,6 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       return { agents: next };
     });
     return true;
-  },
-
-  setFeatureFlag: async (key, value) => {
-    const next = { ...get().featureFlags, [key]: value };
-    const res = await configRepo.setFeatureFlags(next);
-    if (!res.ok) {
-      set({ lastError: res.error });
-      return;
-    }
-    set({ featureFlags: next });
   },
 
   setAudioSetting: async (key, value) => {

@@ -4,8 +4,6 @@ jest.mock("../persistenceImpl", () => ({
     getAll: jest.fn(),
     upsert: jest.fn(),
     remove: jest.fn(),
-    getFeatureFlags: jest.fn(),
-    setFeatureFlags: jest.fn(),
     getAudioSettings: jest.fn(),
     setAudioSettings: jest.fn(),
     getUiSettings: jest.fn(),
@@ -45,15 +43,6 @@ describe("repository Result wrapping", () => {
     const result = await agentRepo.remove("a1");
 
     expect(result).toEqual({ ok: false, error: "plain string failure" });
-  });
-
-  it("delegates configRepo.getFeatureFlags to the persistence adapter", async () => {
-    const flags = { agentCreationEnabled: true, weaponCreationEnabled: false };
-    mockPersistence.getFeatureFlags.mockResolvedValue(flags);
-
-    const result = await configRepo.getFeatureFlags();
-
-    expect(result).toEqual({ ok: true, value: flags });
   });
 
   it("delegates configRepo.setUiSettings to the persistence adapter", async () => {

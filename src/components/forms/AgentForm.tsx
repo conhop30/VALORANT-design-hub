@@ -15,6 +15,7 @@ import { colors, spacing, typography } from "../../theme";
 import { FormField, NumberField } from "../FormField";
 import { SelectField } from "../SelectField";
 import { Button } from "../Button";
+import { ImagePickerField } from "../ImagePickerField";
 
 interface AgentFormProps {
   initial?: Agent;
@@ -35,6 +36,7 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [role, setRole] = useState<Role>(initial?.role ?? ROLES[0]);
   const [bio, setBio] = useState(initial?.bio ?? "");
+  const [heroImageUri, setHeroImageUri] = useState<string | undefined>(initial?.heroImageUri);
   const [abilities, setAbilities] = useState<Record<AbilitySlotKey, AgentAbility>>(
     defaultAbilities(initial)
   );
@@ -56,6 +58,7 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
         cost: category === "Basic" ? a.cost : undefined,
         charges: category === "Basic" ? a.charges : undefined,
         ultPoints: category === "Ultimate" ? a.ultPoints : undefined,
+        iconUri: a.iconUri,
       };
       return acc;
     }, {} as Record<AbilitySlotKey, AgentAbility>);
@@ -65,6 +68,7 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
       name: name.trim(),
       role,
       bio: bio.trim() || undefined,
+      heroImageUri,
       abilities: finalAbilities,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
@@ -89,6 +93,12 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
         multiline
         numberOfLines={2}
       />
+      <ImagePickerField
+        label="Hero image"
+        value={heroImageUri}
+        onChange={setHeroImageUri}
+        size={128}
+      />
 
       <View style={styles.divider} />
       <Text style={typography.subtitle}>Abilities</Text>
@@ -104,6 +114,12 @@ export function AgentForm({ initial, onSave, onCancel }: AgentFormProps) {
             <Text style={typography.subtitle}>
               {slot} — {category}
             </Text>
+            <ImagePickerField
+              label="Icon"
+              value={ability.iconUri}
+              onChange={(uri) => updateAbility(slot, { iconUri: uri })}
+              size={64}
+            />
             <FormField
               label="Ability name"
               value={ability.name}

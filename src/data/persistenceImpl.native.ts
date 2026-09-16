@@ -3,9 +3,7 @@ import {
   Agent,
   AudioSettings,
   DEFAULT_AUDIO_SETTINGS,
-  DEFAULT_FEATURE_FLAGS,
   DEFAULT_UI_SETTINGS,
-  FeatureFlags,
   UiSettings,
   Weapon,
 } from "../types/entities";
@@ -41,15 +39,10 @@ const SCHEMA = `
     name TEXT NOT NULL,
     role TEXT NOT NULL,
     bio TEXT,
+    hero_image_uri TEXT,
     abilities_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS feature_flags (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    agent_creation_enabled INTEGER NOT NULL DEFAULT 1,
-    weapon_creation_enabled INTEGER NOT NULL DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS audio_settings (
@@ -101,6 +94,7 @@ function agentToRow(a: Agent) {
     name: a.name,
     role: a.role,
     bio: a.bio ?? null,
+    hero_image_uri: a.heroImageUri ?? null,
     abilities_json: JSON.stringify(a.abilities),
     created_at: a.createdAt,
     updated_at: a.updatedAt,
@@ -119,6 +113,7 @@ function rowToAgent(r: any): Agent {
     name: r.name,
     role: r.role,
     bio: r.bio ?? undefined,
+    heroImageUri: r.hero_image_uri ?? undefined,
     abilities: normalizeAgentAbilities(rawAbilities),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
@@ -165,15 +160,16 @@ export const persistence: PersistenceAdapter = {
     } else {
       const r = agentToRow(row as Agent);
       await db.runAsync(
-        `INSERT INTO agents (id, name, role, bio, abilities_json, created_at, updated_at)
-         VALUES ($id, $name, $role, $bio, $abilities_json, $created_at, $updated_at)
+        `INSERT INTO agents (id, name, role, bio, hero_image_uri, abilities_json, created_at, updated_at)
+         VALUES ($id, $name, $role, $bio, $hero_image_uri, $abilities_json, $created_at, $updated_at)
          ON CONFLICT(id) DO UPDATE SET name=$name, role=$role, bio=$bio,
-           abilities_json=$abilities_json, updated_at=$updated_at`,
+           hero_image_uri=$hero_image_uri, abilities_json=$abilities_json, updated_at=$updated_at`,
         {
           $id: r.id,
           $name: r.name,
           $role: r.role,
           $bio: r.bio,
+          $hero_image_uri: r.hero_image_uri,
           $abilities_json: r.abilities_json,
           $created_at: r.created_at,
           $updated_at: r.updated_at,
@@ -185,34 +181,6 @@ export const persistence: PersistenceAdapter = {
   async remove(table, id) {
     const db = await getDb();
     await db.runAsync(`DELETE FROM ${table} WHERE id = $id`, { $id: id });
-  },
-
-  async getFeatureFlags(): Promise<FeatureFlags> {
-    const db = await getDb();
-    const row: any = await db.getFirstAsync(
-      "SELECT * FROM feature_flags WHERE id = 1"
-    );
-    if (!row) {
-      await this.setFeatureFlags(DEFAULT_FEATURE_FLAGS);
-      return DEFAULT_FEATURE_FLAGS;
-    }
-    return {
-      agentCreationEnabled: !!row.agent_creation_enabled,
-      weaponCreationEnabled: !!row.weapon_creation_enabled,
-    };
-  },
-
-  async setFeatureFlags(flags: FeatureFlags) {
-    const db = await getDb();
-    await db.runAsync(
-      `INSERT INTO feature_flags (id, agent_creation_enabled, weapon_creation_enabled)
-       VALUES (1, $a, $w)
-       ON CONFLICT(id) DO UPDATE SET agent_creation_enabled=$a, weapon_creation_enabled=$w`,
-      {
-        $a: flags.agentCreationEnabled ? 1 : 0,
-        $w: flags.weaponCreationEnabled ? 1 : 0,
-      }
-    );
   },
 
   async getAudioSettings(): Promise<AudioSettings> {

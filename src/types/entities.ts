@@ -48,6 +48,8 @@ export interface AgentAbility {
   charges?: number;
   /** Ult points required to charge — meaningful only for the Ultimate slot. */
   ultPoints?: number;
+  /** Icon image as a data URI — picked via expo-image-picker, stored inline. */
+  iconUri?: string;
 }
 
 export const EMPTY_AGENT_ABILITY: AgentAbility = { name: "", description: "" };
@@ -73,20 +75,12 @@ export interface Agent {
   name: string;
   role: Role;
   bio?: string;
+  /** Portrait/splash art as a data URI — picked via expo-image-picker, stored inline. */
+  heroImageUri?: string;
   abilities: Record<AbilitySlotKey, AgentAbility>;
   createdAt: string;
   updatedAt: string;
 }
-
-export interface FeatureFlags {
-  agentCreationEnabled: boolean;
-  weaponCreationEnabled: boolean;
-}
-
-export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  agentCreationEnabled: true,
-  weaponCreationEnabled: true,
-};
 
 export interface AudioSettings {
   musicEnabled: boolean;

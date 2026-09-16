@@ -9,6 +9,7 @@ function normalizeAbility(value: unknown): AgentAbility {
     cost: typeof a.cost === "number" ? a.cost : undefined,
     charges: typeof a.charges === "number" ? a.charges : undefined,
     ultPoints: typeof a.ultPoints === "number" ? a.ultPoints : undefined,
+    iconUri: typeof a.iconUri === "string" ? a.iconUri : undefined,
   };
 }
 

@@ -7,7 +7,7 @@ import { SelectField } from "./SelectField";
 import { useClickSound } from "../audio/useClickSound";
 import { exportAllData, importAllData } from "../data/exportImport";
 
-interface FeatureFlagsSheetProps {
+interface SettingsSheetProps {
   onClose: () => void;
 }
 
@@ -52,9 +52,7 @@ function ToggleRow({
   );
 }
 
-export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
-  const flags = useDesignStore((s) => s.featureFlags);
-  const setFlag = useDesignStore((s) => s.setFeatureFlag);
+export function SettingsSheet({ onClose }: SettingsSheetProps) {
   const audio = useDesignStore((s) => s.audioSettings);
   const setAudioSetting = useDesignStore((s) => s.setAudioSetting);
   const uiSettings = useDesignStore((s) => s.uiSettings);
@@ -84,37 +82,10 @@ export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
     setTransferBusy(false);
   };
 
-  const rows: { key: keyof typeof flags; label: string; hint: string }[] = [
-    {
-      key: "agentCreationEnabled",
-      label: "Agent creation",
-      hint: "Show the 'New Agent' entry point.",
-    },
-    {
-      key: "weaponCreationEnabled",
-      label: "Weapon creation",
-      hint: "Show the 'New Weapon' entry point.",
-    },
-  ];
-
   return (
     <ScrollView style={{ maxHeight: "100%" }} contentContainerStyle={{ gap: spacing.md }}>
       <Text style={typography.title}>Settings</Text>
-      <Text style={typography.caption}>
-        Turning a feature off only hides its "Create" entry point — anything already
-        built with it keeps working exactly as before.
-      </Text>
-      {rows.map((row) => (
-        <ToggleRow
-          key={row.key}
-          label={row.label}
-          hint={row.hint}
-          value={flags[row.key]}
-          onChange={(v) => setFlag(row.key, v)}
-        />
-      ))}
 
-      <View style={styles.divider} />
       <Text style={typography.subtitle}>General</Text>
 
       <ToggleRow

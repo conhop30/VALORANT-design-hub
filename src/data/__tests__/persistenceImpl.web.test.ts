@@ -2,7 +2,6 @@ import { persistence } from "../persistenceImpl.web";
 import {
   Agent,
   DEFAULT_AUDIO_SETTINGS,
-  DEFAULT_FEATURE_FLAGS,
   DEFAULT_UI_SETTINGS,
   EMPTY_AGENT_ABILITY,
   Weapon,
@@ -131,18 +130,6 @@ describe("web persistence adapter", () => {
       E: EMPTY_AGENT_ABILITY,
       X: EMPTY_AGENT_ABILITY,
     });
-  });
-
-  it("feature flags default to DEFAULT_FEATURE_FLAGS until set", async () => {
-    expect(await persistence.getFeatureFlags()).toEqual(DEFAULT_FEATURE_FLAGS);
-  });
-
-  it("feature flags round-trip through set/get", async () => {
-    const flags = { ...DEFAULT_FEATURE_FLAGS, weaponCreationEnabled: false };
-
-    await persistence.setFeatureFlags(flags);
-
-    expect(await persistence.getFeatureFlags()).toEqual(flags);
   });
 
   it("audio settings round-trip through set/get", async () => {

@@ -57,4 +57,20 @@ describe("normalizeAgentAbilities", () => {
 
     expect(result.C).toEqual(EMPTY_AGENT_ABILITY);
   });
+
+  it("passes through a valid iconUri data URI", () => {
+    const result = normalizeAgentAbilities({
+      C: { name: "Ward Charge", description: "d", iconUri: "data:image/jpeg;base64,abc123" },
+    });
+
+    expect(result.C.iconUri).toBe("data:image/jpeg;base64,abc123");
+  });
+
+  it("drops a non-string iconUri instead of propagating it", () => {
+    const result = normalizeAgentAbilities({
+      C: { name: "Ward Charge", description: "d", iconUri: 12345 },
+    });
+
+    expect(result.C.iconUri).toBeUndefined();
+  });
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import {
   Agent,
   AgentAbility,
@@ -37,6 +37,7 @@ function AbilitySlotRow({ slot, ability }: { slot: AbilitySlotKey; ability: Agen
       <View style={styles.slotKey}>
         <Text style={styles.slotKeyText}>{slot}</Text>
       </View>
+      {ability.iconUri && <Image source={{ uri: ability.iconUri }} style={styles.abilityIcon} />}
       {!hasContent ? (
         <Text style={[typography.body, styles.unavailable]}>Not yet defined</Text>
       ) : (
@@ -100,6 +101,11 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontWeight: "800",
     fontSize: 12,
+  },
+  abilityIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
   },
   unavailable: {
     fontStyle: "italic",

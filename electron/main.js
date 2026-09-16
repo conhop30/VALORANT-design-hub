@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, screen } = require("electron");
 const path = require("path");
 const http = require("http");
 const fs = require("fs");
@@ -73,20 +73,37 @@ let mainWindow;
 async function createWindow() {
   await startServer();
 
+  // Windowed fallback size (used once the user drops out of fullscreen) —
+  // sized off the actual display instead of a fixed 1280x900, so it still
+  // fits sensibly on a smaller screen.
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const width = Math.min(1280, Math.round(screenWidth * 0.9));
+  const height = Math.min(900, Math.round(screenHeight * 0.9));
+
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 900,
+    width,
+    height,
     minWidth: 800,
     minHeight: 600,
     title: "VALORANT Design Hub",
     icon: path.join(__dirname, "..", "assets", "icon.png"),
     autoHideMenuBar: true,
+    fullscreen: true,
     backgroundColor: "#0F1923",
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
     },
+  });
+
+  // F11 toggles fullscreen (standard convention) — the only way out once
+  // launched fullscreen, since fullscreen mode hides the native title bar
+  // (and its minimize/maximize/close controls) entirely.
+  mainWindow.webContents.on("before-input-event", (_event, input) => {
+    if (input.type === "keyDown" && input.key === "F11") {
+      mainWindow.setFullScreen(!mainWindow.isFullScreen());
+    }
   });
 
   mainWindow.loadURL(`http://127.0.0.1:${PORT}`);
