@@ -9,7 +9,6 @@ export async function exportAllData(): Promise<ExportResult> {
   const payload: ExportPayload = {
     schemaVersion: EXPORT_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
-    abilities: Object.values(state.abilities),
     weapons: Object.values(state.weapons),
     agents: Object.values(state.agents),
   };
@@ -22,7 +21,7 @@ export async function exportAllData(): Promise<ExportResult> {
 }
 
 export type ImportResult =
-  | { status: "success"; counts: { abilities: number; weapons: number; agents: number } }
+  | { status: "success"; counts: { weapons: number; agents: number } }
   | { status: "cancelled" }
   | { status: "error"; error: string };
 
@@ -31,17 +30,11 @@ function isValidPayload(value: unknown): value is ExportPayload {
   const p = value as Partial<ExportPayload>;
   return (
     typeof p.schemaVersion === "number" &&
-    Array.isArray(p.abilities) &&
     Array.isArray(p.weapons) &&
     Array.isArray(p.agents)
   );
 }
 
-/**
- * Imports in FK-safe order — abilities and weapons before the agents that
- * reference them — so native SQLite's foreign key constraints never reject
- * a row for referencing something that hasn't been inserted yet.
- */
 export async function importAllData(): Promise<ImportResult> {
   try {
     const payload = await exportImport.importData();
@@ -51,10 +44,6 @@ export async function importAllData(): Promise<ImportResult> {
     }
 
     const store = useDesignStore.getState();
-    for (const ability of payload.abilities) {
-      const ok = await store.saveAbility(ability);
-      if (!ok) return { status: "error", error: useDesignStore.getState().lastError ?? "Import failed." };
-    }
     for (const weapon of payload.weapons) {
       const ok = await store.saveWeapon(weapon);
       if (!ok) return { status: "error", error: useDesignStore.getState().lastError ?? "Import failed." };
@@ -67,7 +56,6 @@ export async function importAllData(): Promise<ImportResult> {
     return {
       status: "success",
       counts: {
-        abilities: payload.abilities.length,
         weapons: payload.weapons.length,
         agents: payload.agents.length,
       },

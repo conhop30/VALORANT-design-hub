@@ -4,12 +4,6 @@ export const ROLES: Role[] = ["Duelist", "Initiator", "Controller", "Sentinel"];
 
 export type AbilityCategory = "Basic" | "Signature" | "Ultimate";
 
-export const ABILITY_CATEGORIES: AbilityCategory[] = [
-  "Basic",
-  "Signature",
-  "Ultimate",
-];
-
 export type WeaponCategory =
   | "Sidearm"
   | "SMG"
@@ -31,20 +25,32 @@ export type AbilitySlotKey = "C" | "Q" | "E" | "X";
 
 export const ABILITY_SLOT_KEYS: AbilitySlotKey[] = ["C", "Q", "E", "X"];
 
-export interface Ability {
-  id: string;
+/** Which ability tier occupies each keystroke slot — fixed by convention, not user-editable. */
+export const SLOT_CATEGORY: Record<AbilitySlotKey, AbilityCategory> = {
+  C: "Basic",
+  Q: "Basic",
+  E: "Signature",
+  X: "Ultimate",
+};
+
+/**
+ * An ability is authored inline as part of its Agent — no standalone id or
+ * lifecycle of its own, so an agent can be saved and fleshed out slot by
+ * slot instead of requiring a fully-built ability to be picked from a
+ * separate library first.
+ */
+export interface AgentAbility {
   name: string;
   description: string;
-  category: AbilityCategory;
-  /** Credits cost — meaningful for Basic abilities, omitted for Signature/Ultimate. */
+  /** Credits cost — meaningful for Basic abilities. */
   cost?: number;
   /** Charges available per round — meaningful for Basic abilities. */
   charges?: number;
-  /** Ult points required to charge — meaningful only when category is Ultimate. */
+  /** Ult points required to charge — meaningful only for the Ultimate slot. */
   ultPoints?: number;
-  createdAt: string;
-  updatedAt: string;
 }
+
+export const EMPTY_AGENT_ABILITY: AgentAbility = { name: "", description: "" };
 
 export interface Weapon {
   id: string;
@@ -67,7 +73,7 @@ export interface Agent {
   name: string;
   role: Role;
   bio?: string;
-  abilityIds: Record<AbilitySlotKey, string>;
+  abilities: Record<AbilitySlotKey, AgentAbility>;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,13 +81,11 @@ export interface Agent {
 export interface FeatureFlags {
   agentCreationEnabled: boolean;
   weaponCreationEnabled: boolean;
-  abilityCreationEnabled: boolean;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   agentCreationEnabled: true,
   weaponCreationEnabled: true,
-  abilityCreationEnabled: true,
 };
 
 export interface AudioSettings {
@@ -104,14 +108,15 @@ export const DEFAULT_UI_SETTINGS: UiSettings = {
   confirmDeletes: true,
 };
 
-export type EntityKind = "agent" | "weapon" | "ability";
+export type EntityKind = "agent" | "weapon";
 
-export const EXPORT_SCHEMA_VERSION = 1;
+// Bumped from 1: abilities moved from a standalone array into each agent's
+// own `abilities` field, so an old export's shape no longer matches.
+export const EXPORT_SCHEMA_VERSION = 2;
 
 export interface ExportPayload {
   schemaVersion: number;
   exportedAt: string;
-  abilities: Ability[];
   weapons: Weapon[];
   agents: Agent[];
 }

@@ -13,7 +13,7 @@ jest.mock("../persistenceImpl", () => ({
   },
 }));
 
-import { abilityRepo, agentRepo, configRepo, weaponRepo } from "../repository";
+import { agentRepo, configRepo, weaponRepo } from "../repository";
 import { persistence } from "../persistenceImpl";
 
 const mockPersistence = persistence as jest.Mocked<typeof persistence>;
@@ -24,11 +24,11 @@ beforeEach(() => {
 
 describe("repository Result wrapping", () => {
   it("wraps a successful call in { ok: true, value }", async () => {
-    mockPersistence.getAll.mockResolvedValue([{ id: "a1" } as any]);
+    mockPersistence.getAll.mockResolvedValue([{ id: "w1" } as any]);
 
-    const result = await abilityRepo.list();
+    const result = await weaponRepo.list();
 
-    expect(result).toEqual({ ok: true, value: [{ id: "a1" }] });
+    expect(result).toEqual({ ok: true, value: [{ id: "w1" }] });
   });
 
   it("wraps a thrown Error in { ok: false, error }", async () => {
@@ -48,11 +48,7 @@ describe("repository Result wrapping", () => {
   });
 
   it("delegates configRepo.getFeatureFlags to the persistence adapter", async () => {
-    const flags = {
-      agentCreationEnabled: true,
-      weaponCreationEnabled: false,
-      abilityCreationEnabled: true,
-    };
+    const flags = { agentCreationEnabled: true, weaponCreationEnabled: false };
     mockPersistence.getFeatureFlags.mockResolvedValue(flags);
 
     const result = await configRepo.getFeatureFlags();

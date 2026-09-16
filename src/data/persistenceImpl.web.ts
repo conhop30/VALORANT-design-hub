@@ -1,5 +1,4 @@
 import {
-  Agent,
   AudioSettings,
   DEFAULT_AUDIO_SETTINGS,
   DEFAULT_FEATURE_FLAGS,
@@ -24,14 +23,6 @@ function writeTable<K extends TableName>(table: K, rows: EntityMap[K][]): void {
   localStorage.setItem(tableKey(table), JSON.stringify(rows));
 }
 
-function isReferenced(table: TableName, id: string): boolean {
-  if (table === "abilities") {
-    const agents = readTable("agents") as Agent[];
-    return agents.some((a) => Object.values(a.abilityIds).includes(id));
-  }
-  return false;
-}
-
 export const persistence: PersistenceAdapter = {
   async init() {
     // Nothing to migrate — localStorage reads default to empty arrays.
@@ -53,11 +44,6 @@ export const persistence: PersistenceAdapter = {
   },
 
   async remove(table, id) {
-    if (isReferenced(table, id)) {
-      throw new Error(
-        "This record is still used by an Agent — remove the referencing Agent first."
-      );
-    }
     const rows = readTable(table);
     writeTable(
       table,

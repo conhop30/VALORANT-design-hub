@@ -14,32 +14,22 @@ import { colors, spacing, typography } from "../theme";
 import { SegmentedTabs } from "../components/SegmentedTabs";
 import { AgentCard } from "../components/AgentCard";
 import { WeaponCard } from "../components/WeaponCard";
-import { AbilityCard } from "../components/AbilityCard";
 import { Sheet } from "../components/Sheet";
 import { AgentForm } from "../components/forms/AgentForm";
 import { WeaponForm } from "../components/forms/WeaponForm";
-import { AbilityForm } from "../components/forms/AbilityForm";
 import { FeatureFlagsSheet } from "../components/FeatureFlagsSheet";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ListToolbar } from "../components/ListToolbar";
 import { Button } from "../components/Button";
 import { useClickSound } from "../audio/useClickSound";
-import {
-  ABILITY_CATEGORIES,
-  Agent,
-  Weapon,
-  Ability,
-  ROLES,
-  WEAPON_CATEGORIES,
-} from "../types/entities";
+import { Agent, Weapon, ROLES, WEAPON_CATEGORIES } from "../types/entities";
 import { applySearchAndSort, SortOption } from "../utils/listQuery";
 
-type Library = "agents" | "weapons" | "abilities";
+type Library = "agents" | "weapons";
 type SheetMode =
   | { kind: "none" }
   | { kind: "agent"; agent?: Agent }
   | { kind: "weapon"; weapon?: Weapon }
-  | { kind: "ability"; ability?: Ability }
   | { kind: "settings" };
 type DeleteRequest = { library: Library; id: string; name: string };
 
@@ -59,10 +49,6 @@ const WEAPON_FILTER_OPTIONS = [
   { id: "all", label: "All categories" },
   ...WEAPON_CATEGORIES.map((c) => ({ id: c, label: c })),
 ];
-const ABILITY_FILTER_OPTIONS = [
-  { id: "all", label: "All categories" },
-  ...ABILITY_CATEGORIES.map((c) => ({ id: c, label: c })),
-];
 
 export function Hub() {
   const playClick = useClickSound();
@@ -73,7 +59,6 @@ export function Hub() {
 
   const agents = useDesignStore((s) => s.agents);
   const weapons = useDesignStore((s) => s.weapons);
-  const abilities = useDesignStore((s) => s.abilities);
   const flags = useDesignStore((s) => s.featureFlags);
   const uiSettings = useDesignStore((s) => s.uiSettings);
   const setUiSetting = useDesignStore((s) => s.setUiSetting);
@@ -82,8 +67,6 @@ export function Hub() {
   const removeAgent = useDesignStore((s) => s.removeAgent);
   const saveWeapon = useDesignStore((s) => s.saveWeapon);
   const removeWeapon = useDesignStore((s) => s.removeWeapon);
-  const saveAbility = useDesignStore((s) => s.saveAbility);
-  const removeAbility = useDesignStore((s) => s.removeAbility);
 
   const [library, setLibrary] = useState<Library>("agents");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -92,7 +75,6 @@ export function Hub() {
   const [queries, setQueries] = useState<Record<Library, ListQuery>>({
     agents: { ...DEFAULT_LIST_QUERY },
     weapons: { ...DEFAULT_LIST_QUERY },
-    abilities: { ...DEFAULT_LIST_QUERY },
   });
   const query = queries[library];
   const updateQuery = (patch: Partial<ListQuery>) =>
@@ -100,8 +82,7 @@ export function Hub() {
 
   const performDelete = (library: Library, id: string) => {
     if (library === "agents") removeAgent(id);
-    else if (library === "weapons") removeWeapon(id);
-    else removeAbility(id);
+    else removeWeapon(id);
   };
 
   const requestDelete = (library: Library, id: string, name: string) => {
@@ -164,47 +145,10 @@ export function Hub() {
         </>
       );
     }
-    if (library === "weapons") {
-      const raw = Object.values(weapons);
-      if (raw.length === 0) return <EmptyState label="No weapons yet." />;
-      const items = applySearchAndSort(raw, query.search, query.sort).filter(
-        (w) => query.filter === "all" || w.category === query.filter
-      );
-      return (
-        <>
-          <ListToolbar
-            search={query.search}
-            onSearchChange={(v) => updateQuery({ search: v })}
-            sort={query.sort}
-            onSortChange={(v) => updateQuery({ sort: v })}
-            filterLabel="Category"
-            filterOptions={WEAPON_FILTER_OPTIONS}
-            filterValue={query.filter}
-            onFilterChange={(v) => updateQuery({ filter: v })}
-          />
-          {items.length === 0 ? (
-            <EmptyState label="No weapons match your search." />
-          ) : (
-            <ScrollView contentContainerStyle={styles.list}>
-              {items.map((item) => (
-                <WeaponCard
-                  key={item.id}
-                  weapon={item}
-                  expanded={expandedId === item.id}
-                  onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
-                  onEdit={() => setSheet({ kind: "weapon", weapon: item })}
-                  onDelete={() => requestDelete("weapons", item.id, item.name)}
-                />
-              ))}
-            </ScrollView>
-          )}
-        </>
-      );
-    }
-    const raw = Object.values(abilities);
-    if (raw.length === 0) return <EmptyState label="No abilities yet." />;
+    const raw = Object.values(weapons);
+    if (raw.length === 0) return <EmptyState label="No weapons yet." />;
     const items = applySearchAndSort(raw, query.search, query.sort).filter(
-      (a) => query.filter === "all" || a.category === query.filter
+      (w) => query.filter === "all" || w.category === query.filter
     );
     return (
       <>
@@ -214,22 +158,22 @@ export function Hub() {
           sort={query.sort}
           onSortChange={(v) => updateQuery({ sort: v })}
           filterLabel="Category"
-          filterOptions={ABILITY_FILTER_OPTIONS}
+          filterOptions={WEAPON_FILTER_OPTIONS}
           filterValue={query.filter}
           onFilterChange={(v) => updateQuery({ filter: v })}
         />
         {items.length === 0 ? (
-          <EmptyState label="No abilities match your search." />
+          <EmptyState label="No weapons match your search." />
         ) : (
           <ScrollView contentContainerStyle={styles.list}>
             {items.map((item) => (
-              <AbilityCard
+              <WeaponCard
                 key={item.id}
-                ability={item}
+                weapon={item}
                 expanded={expandedId === item.id}
                 onToggle={() => setExpandedId((id) => (id === item.id ? null : item.id))}
-                onEdit={() => setSheet({ kind: "ability", ability: item })}
-                onDelete={() => requestDelete("abilities", item.id, item.name)}
+                onEdit={() => setSheet({ kind: "weapon", weapon: item })}
+                onDelete={() => requestDelete("weapons", item.id, item.name)}
               />
             ))}
           </ScrollView>
@@ -239,11 +183,7 @@ export function Hub() {
   };
 
   const creationEnabled =
-    library === "agents"
-      ? flags.agentCreationEnabled
-      : library === "weapons"
-      ? flags.weaponCreationEnabled
-      : flags.abilityCreationEnabled;
+    library === "agents" ? flags.agentCreationEnabled : flags.weaponCreationEnabled;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -274,7 +214,6 @@ export function Hub() {
             options={[
               { key: "agents", label: "Agents" },
               { key: "weapons", label: "Weapons" },
-              { key: "abilities", label: "Abilities" },
             ]}
           />
         </View>
@@ -284,15 +223,9 @@ export function Hub() {
         {creationEnabled && (
           <View style={styles.fabWrap}>
             <Button
-              label={`+ New ${library === "agents" ? "Agent" : library === "weapons" ? "Weapon" : "Ability"}`}
+              label={`+ New ${library === "agents" ? "Agent" : "Weapon"}`}
               onPress={() =>
-                setSheet(
-                  library === "agents"
-                    ? { kind: "agent" }
-                    : library === "weapons"
-                    ? { kind: "weapon" }
-                    : { kind: "ability" }
-                )
+                setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
               }
             />
           </View>
@@ -318,17 +251,6 @@ export function Hub() {
             onCancel={closeSheet}
             onSave={async (w) => {
               const ok = await saveWeapon(w);
-              if (ok) closeSheet();
-            }}
-          />
-        )}
-        {sheet.kind === "ability" && (
-          <AbilityForm
-            key={sheet.ability?.id ?? "new-ability"}
-            initial={sheet.ability}
-            onCancel={closeSheet}
-            onSave={async (a) => {
-              const ok = await saveAbility(a);
               if (ok) closeSheet();
             }}
           />

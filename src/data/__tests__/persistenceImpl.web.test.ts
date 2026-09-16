@@ -1,10 +1,11 @@
 import { persistence } from "../persistenceImpl.web";
 import {
-  Ability,
   Agent,
   DEFAULT_AUDIO_SETTINGS,
   DEFAULT_FEATURE_FLAGS,
   DEFAULT_UI_SETTINGS,
+  EMPTY_AGENT_ABILITY,
+  Weapon,
 } from "../../types/entities";
 
 function createLocalStorageMock() {
@@ -27,61 +28,82 @@ beforeEach(() => {
   (global as any).localStorage = createLocalStorageMock();
 });
 
-const ability: Ability = {
-  id: "ab1",
-  name: "Test Ability",
-  description: "desc",
-  category: "Basic",
+const weapon: Weapon = {
+  id: "w1",
+  name: "Test Weapon",
+  category: "Rifle",
+  cost: 2900,
+  fireRate: 9.75,
+  magazineSize: 25,
+  damage: { close: 40, mid: 35, far: 30 },
+  createdAt: "t",
+  updatedAt: "t",
+};
+
+const agent: Agent = {
+  id: "a1",
+  name: "Test Agent",
+  role: "Duelist",
+  abilities: {
+    C: { ...EMPTY_AGENT_ABILITY },
+    Q: { ...EMPTY_AGENT_ABILITY },
+    E: { ...EMPTY_AGENT_ABILITY },
+    X: { ...EMPTY_AGENT_ABILITY },
+  },
   createdAt: "t",
   updatedAt: "t",
 };
 
 describe("web persistence adapter", () => {
   it("returns an empty list for a table that has never been written", async () => {
-    expect(await persistence.getAll("abilities")).toEqual([]);
+    expect(await persistence.getAll("weapons")).toEqual([]);
   });
 
   it("upsert inserts a new row and getAll returns it", async () => {
-    await persistence.upsert("abilities", ability);
+    await persistence.upsert("weapons", weapon);
 
-    expect(await persistence.getAll("abilities")).toEqual([ability]);
+    expect(await persistence.getAll("weapons")).toEqual([weapon]);
   });
 
   it("upsert updates an existing row in place instead of duplicating it", async () => {
-    await persistence.upsert("abilities", ability);
-    const renamed = { ...ability, name: "Renamed" };
+    await persistence.upsert("weapons", weapon);
+    const renamed = { ...weapon, name: "Renamed" };
 
-    await persistence.upsert("abilities", renamed);
+    await persistence.upsert("weapons", renamed);
 
-    const all = await persistence.getAll("abilities");
+    const all = await persistence.getAll("weapons");
     expect(all).toHaveLength(1);
     expect(all[0].name).toBe("Renamed");
   });
 
-  it("remove deletes a row that nothing references", async () => {
-    await persistence.upsert("abilities", ability);
+  it("remove deletes a row", async () => {
+    await persistence.upsert("weapons", weapon);
 
-    await persistence.remove("abilities", "ab1");
+    await persistence.remove("weapons", "w1");
 
-    expect(await persistence.getAll("abilities")).toEqual([]);
+    expect(await persistence.getAll("weapons")).toEqual([]);
   });
 
-  it("remove rejects when an agent still references the ability (FK safety net)", async () => {
-    const agent: Agent = {
-      id: "ag1",
-      name: "Vantage",
-      role: "Sentinel",
-      abilityIds: { C: "ab1", Q: "ab1", E: "ab1", X: "ab1" },
-      createdAt: "t",
-      updatedAt: "t",
+  it("stores and retrieves an agent with its embedded abilities intact", async () => {
+    const withAbilities: Agent = {
+      ...agent,
+      abilities: {
+        ...agent.abilities,
+        C: { name: "Ward Charge", description: "Pulses nearby motion.", cost: 200, charges: 2 },
+        X: { name: "Overwatch Protocol", description: "Reveals enemies.", ultPoints: 7 },
+      },
     };
-    await persistence.upsert("abilities", ability);
-    await persistence.upsert("agents", agent);
 
-    await expect(persistence.remove("abilities", "ab1")).rejects.toThrow(
-      /still used by an Agent/
-    );
-    expect(await persistence.getAll("abilities")).toEqual([ability]);
+    await persistence.upsert("agents", withAbilities);
+
+    const [stored] = await persistence.getAll("agents");
+    expect(stored.abilities.C).toEqual({
+      name: "Ward Charge",
+      description: "Pulses nearby motion.",
+      cost: 200,
+      charges: 2,
+    });
+    expect(stored.abilities.X.ultPoints).toBe(7);
   });
 
   it("feature flags default to DEFAULT_FEATURE_FLAGS until set", async () => {

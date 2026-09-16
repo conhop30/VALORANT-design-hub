@@ -1,4 +1,4 @@
-import { Ability, Agent, AudioSettings, FeatureFlags, UiSettings, Weapon } from "../types/entities";
+import { Agent, AudioSettings, FeatureFlags, UiSettings, Weapon } from "../types/entities";
 import { persistence } from "./persistenceImpl";
 import { TableName } from "./persistenceTypes";
 
@@ -26,7 +26,6 @@ function makeRepo<T extends { id: string }>(table: TableName) {
   };
 }
 
-export const abilityRepo = makeRepo<Ability>("abilities");
 export const weaponRepo = makeRepo<Weapon>("weapons");
 export const agentRepo = makeRepo<Agent>("agents");
 

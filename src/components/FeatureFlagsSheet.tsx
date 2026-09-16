@@ -76,7 +76,7 @@ export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
     const res = await importAllData();
     if (res.status === "success") {
       setTransferStatus(
-        `Imported ${res.counts.agents} agent(s), ${res.counts.weapons} weapon(s), ${res.counts.abilities} ability/abilities.`
+        `Imported ${res.counts.agents} agent(s) and ${res.counts.weapons} weapon(s).`
       );
     } else if (res.status === "error") {
       setTransferStatus(res.error);
@@ -94,11 +94,6 @@ export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
       key: "weaponCreationEnabled",
       label: "Weapon creation",
       hint: "Show the 'New Weapon' entry point.",
-    },
-    {
-      key: "abilityCreationEnabled",
-      label: "Ability creation",
-      hint: "Show the 'New Ability' entry point.",
     },
   ];
 
@@ -124,7 +119,7 @@ export function FeatureFlagsSheet({ onClose }: FeatureFlagsSheetProps) {
 
       <ToggleRow
         label="Confirm before deleting"
-        hint="Show a confirmation dialog before deleting agents, weapons, or abilities."
+        hint="Show a confirmation dialog before deleting agents or weapons."
         value={uiSettings.confirmDeletes}
         onChange={(v) => setUiSetting("confirmDeletes", v)}
       />

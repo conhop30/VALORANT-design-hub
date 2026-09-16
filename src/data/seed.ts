@@ -1,4 +1,4 @@
-import { Ability, Agent, Weapon } from "../types/entities";
+import { Agent, Weapon } from "../types/entities";
 import { useDesignStore } from "./store";
 
 const now = () => new Date().toISOString();
@@ -9,54 +9,9 @@ const now = () => new Date().toISOString();
  */
 export async function seedIfEmpty() {
   const store = useDesignStore.getState();
-  if (
-    Object.keys(store.abilities).length > 0 ||
-    Object.keys(store.weapons).length > 0 ||
-    Object.keys(store.agents).length > 0
-  ) {
+  if (Object.keys(store.weapons).length > 0 || Object.keys(store.agents).length > 0) {
     return;
   }
-
-  const abilities: Ability[] = [
-    {
-      id: "seed-ability-basic-1",
-      name: "Ward Charge",
-      description: "Throw a small drone that pulses a short-range motion ping when an enemy passes near it.",
-      category: "Basic",
-      cost: 200,
-      charges: 2,
-      createdAt: now(),
-      updatedAt: now(),
-    },
-    {
-      id: "seed-ability-basic-2",
-      name: "Kinetic Snap",
-      description: "Instantly recall to your position from up to 15 meters away, canceling incoming momentum.",
-      category: "Basic",
-      cost: 250,
-      charges: 1,
-      createdAt: now(),
-      updatedAt: now(),
-    },
-    {
-      id: "seed-ability-signature",
-      name: "Bulwark Field",
-      description: "Deploy a directional energy barrier that blocks bullets and vision for 12 seconds.",
-      category: "Signature",
-      charges: 1,
-      createdAt: now(),
-      updatedAt: now(),
-    },
-    {
-      id: "seed-ability-ultimate",
-      name: "Overwatch Protocol",
-      description: "Reveal every enemy's position through walls for 6 seconds and mark them for your team.",
-      category: "Ultimate",
-      ultPoints: 7,
-      createdAt: now(),
-      updatedAt: now(),
-    },
-  ];
 
   const weapon: Weapon = {
     id: "seed-weapon-1",
@@ -75,17 +30,35 @@ export async function seedIfEmpty() {
     name: "Vantage",
     role: "Sentinel",
     bio: "A former recon officer who trades mobility for absolute board control.",
-    abilityIds: {
-      C: abilities[0].id,
-      Q: abilities[1].id,
-      E: abilities[2].id,
-      X: abilities[3].id,
+    abilities: {
+      C: {
+        name: "Ward Charge",
+        description:
+          "Throw a small drone that pulses a short-range motion ping when an enemy passes near it.",
+        cost: 200,
+        charges: 2,
+      },
+      Q: {
+        name: "Kinetic Snap",
+        description:
+          "Instantly recall to your position from up to 15 meters away, canceling incoming momentum.",
+        cost: 250,
+        charges: 1,
+      },
+      E: {
+        name: "Bulwark Field",
+        description: "Deploy a directional energy barrier that blocks bullets and vision for 12 seconds.",
+      },
+      X: {
+        name: "Overwatch Protocol",
+        description: "Reveal every enemy's position through walls for 6 seconds and mark them for your team.",
+        ultPoints: 7,
+      },
     },
     createdAt: now(),
     updatedAt: now(),
   };
 
-  for (const a of abilities) await store.saveAbility(a);
   await store.saveWeapon(weapon);
   await store.saveAgent(agent);
 }

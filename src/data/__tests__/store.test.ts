@@ -1,5 +1,4 @@
 jest.mock("../repository", () => ({
-  abilityRepo: { list: jest.fn(), save: jest.fn(), remove: jest.fn() },
   weaponRepo: { list: jest.fn(), save: jest.fn(), remove: jest.fn() },
   agentRepo: { list: jest.fn(), save: jest.fn(), remove: jest.fn() },
   configRepo: {
@@ -14,16 +13,16 @@ jest.mock("../repository", () => ({
 }));
 
 import {
+  Agent,
   DEFAULT_AUDIO_SETTINGS,
   DEFAULT_FEATURE_FLAGS,
   DEFAULT_UI_SETTINGS,
-  Ability,
+  EMPTY_AGENT_ABILITY,
 } from "../../types/entities";
-import { abilityRepo, agentRepo, configRepo, weaponRepo } from "../repository";
+import { agentRepo, configRepo, weaponRepo } from "../repository";
 import { useDesignStore } from "../store";
 
 const mocked = {
-  abilityRepo: abilityRepo as jest.Mocked<typeof abilityRepo>,
   weaponRepo: weaponRepo as jest.Mocked<typeof weaponRepo>,
   agentRepo: agentRepo as jest.Mocked<typeof agentRepo>,
   configRepo: configRepo as jest.Mocked<typeof configRepo>,
@@ -36,11 +35,16 @@ function err(error: string) {
   return { ok: false as const, error };
 }
 
-const ability: Ability = {
-  id: "ab1",
-  name: "Test Ability",
-  description: "desc",
-  category: "Basic",
+const agent: Agent = {
+  id: "a1",
+  name: "Test Agent",
+  role: "Duelist",
+  abilities: {
+    C: { ...EMPTY_AGENT_ABILITY },
+    Q: { ...EMPTY_AGENT_ABILITY },
+    E: { ...EMPTY_AGENT_ABILITY },
+    X: { ...EMPTY_AGENT_ABILITY },
+  },
   createdAt: "t",
   updatedAt: "t",
 };
@@ -49,7 +53,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   useDesignStore.setState({
     hydrated: false,
-    abilities: {},
     weapons: {},
     agents: {},
     featureFlags: DEFAULT_FEATURE_FLAGS,
@@ -62,9 +65,8 @@ beforeEach(() => {
 describe("useDesignStore", () => {
   it("hydrate() populates state from the repository", async () => {
     mocked.configRepo.init.mockResolvedValue(ok(undefined));
-    mocked.abilityRepo.list.mockResolvedValue(ok([ability]));
     mocked.weaponRepo.list.mockResolvedValue(ok([]));
-    mocked.agentRepo.list.mockResolvedValue(ok([]));
+    mocked.agentRepo.list.mockResolvedValue(ok([agent]));
     mocked.configRepo.getFeatureFlags.mockResolvedValue(ok(DEFAULT_FEATURE_FLAGS));
     mocked.configRepo.getAudioSettings.mockResolvedValue(ok(DEFAULT_AUDIO_SETTINGS));
     mocked.configRepo.getUiSettings.mockResolvedValue(ok(DEFAULT_UI_SETTINGS));
@@ -73,7 +75,7 @@ describe("useDesignStore", () => {
 
     const state = useDesignStore.getState();
     expect(state.hydrated).toBe(true);
-    expect(state.abilities).toEqual({ ab1: ability });
+    expect(state.agents).toEqual({ a1: agent });
     expect(state.lastError).toBeNull();
   });
 
@@ -84,48 +86,46 @@ describe("useDesignStore", () => {
 
     expect(useDesignStore.getState().lastError).toBe("init failed");
     expect(useDesignStore.getState().hydrated).toBe(false);
-    expect(mocked.abilityRepo.list).not.toHaveBeenCalled();
+    expect(mocked.agentRepo.list).not.toHaveBeenCalled();
   });
 
-  it("saveAbility adds the record to state on success", async () => {
-    mocked.abilityRepo.save.mockResolvedValue(ok(undefined));
+  it("saveAgent adds the record to state on success", async () => {
+    mocked.agentRepo.save.mockResolvedValue(ok(undefined));
 
-    const result = await useDesignStore.getState().saveAbility(ability);
+    const result = await useDesignStore.getState().saveAgent(agent);
 
     expect(result).toBe(true);
-    expect(useDesignStore.getState().abilities.ab1).toEqual(ability);
+    expect(useDesignStore.getState().agents.a1).toEqual(agent);
   });
 
-  it("saveAbility surfaces an error and leaves state untouched", async () => {
-    mocked.abilityRepo.save.mockResolvedValue(err("still referenced"));
+  it("saveAgent surfaces an error and leaves state untouched", async () => {
+    mocked.agentRepo.save.mockResolvedValue(err("write failed"));
 
-    const result = await useDesignStore.getState().saveAbility(ability);
+    const result = await useDesignStore.getState().saveAgent(agent);
 
     expect(result).toBe(false);
-    expect(useDesignStore.getState().abilities.ab1).toBeUndefined();
-    expect(useDesignStore.getState().lastError).toBe("still referenced");
+    expect(useDesignStore.getState().agents.a1).toBeUndefined();
+    expect(useDesignStore.getState().lastError).toBe("write failed");
   });
 
-  it("removeAbility deletes the record from state on success", async () => {
-    useDesignStore.setState({ abilities: { ab1: ability } });
-    mocked.abilityRepo.remove.mockResolvedValue(ok(undefined));
+  it("removeAgent deletes the record from state on success", async () => {
+    useDesignStore.setState({ agents: { a1: agent } });
+    mocked.agentRepo.remove.mockResolvedValue(ok(undefined));
 
-    const result = await useDesignStore.getState().removeAbility("ab1");
+    const result = await useDesignStore.getState().removeAgent("a1");
 
     expect(result).toBe(true);
-    expect(useDesignStore.getState().abilities.ab1).toBeUndefined();
+    expect(useDesignStore.getState().agents.a1).toBeUndefined();
   });
 
-  it("removeAbility keeps the record in state when the repo rejects (FK safety net)", async () => {
-    useDesignStore.setState({ abilities: { ab1: ability } });
-    mocked.abilityRepo.remove.mockResolvedValue(
-      err("This record is still used by an Agent — remove the referencing Agent first.")
-    );
+  it("removeAgent keeps the record in state when the repo rejects", async () => {
+    useDesignStore.setState({ agents: { a1: agent } });
+    mocked.agentRepo.remove.mockResolvedValue(err("disk full"));
 
-    const result = await useDesignStore.getState().removeAbility("ab1");
+    const result = await useDesignStore.getState().removeAgent("a1");
 
     expect(result).toBe(false);
-    expect(useDesignStore.getState().abilities.ab1).toEqual(ability);
+    expect(useDesignStore.getState().agents.a1).toEqual(agent);
   });
 
   it("setUiSetting persists and updates confirmDeletes", async () => {

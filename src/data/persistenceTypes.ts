@@ -1,24 +1,24 @@
-import { Ability, Agent, AudioSettings, FeatureFlags, UiSettings, Weapon } from "../types/entities";
+import { Agent, AudioSettings, FeatureFlags, UiSettings, Weapon } from "../types/entities";
 
-export type TableName = "abilities" | "weapons" | "agents";
+export type TableName = "weapons" | "agents";
 
 export interface EntityMap {
-  abilities: Ability;
   weapons: Weapon;
   agents: Agent;
 }
 
 /**
- * Storage boundary. Native builds implement this over expo-sqlite (real tables,
- * real foreign keys). Web builds implement it over localStorage, since
- * expo-sqlite's web target is alpha/unstable — same relational shape either
- * way, enforced by the app layer (see data/store.ts) rather than the engine.
+ * Storage boundary. Native builds implement this over expo-sqlite (real
+ * tables). Web builds implement it over localStorage, since expo-sqlite's
+ * web target is alpha/unstable — same shape either way, enforced by the app
+ * layer (see data/store.ts) rather than the engine. No table references
+ * another by id — abilities are authored inline on their Agent, and
+ * agents/weapons are otherwise independent — so `remove` is a plain delete.
  */
 export interface PersistenceAdapter {
   init(): Promise<void>;
   getAll<K extends TableName>(table: K): Promise<EntityMap[K][]>;
   upsert<K extends TableName>(table: K, row: EntityMap[K]): Promise<void>;
-  /** Rejects if another row still references this id (FK safety net for hard deletes). */
   remove(table: TableName, id: string): Promise<void>;
   getFeatureFlags(): Promise<FeatureFlags>;
   setFeatureFlags(flags: FeatureFlags): Promise<void>;
