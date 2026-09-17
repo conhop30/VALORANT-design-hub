@@ -35,8 +35,8 @@ genuine Windows installer and a signed installable Android build.
 | Persistence | `expo-sqlite` (native) / `localStorage` (web) behind one repository interface | `src/data/persistenceImpl.native.ts` and `.web.ts` implement the same `persistenceTypes.ts` contract, so `repository.ts` and the store never know which backend they're talking to. |
 | Desktop shell | [Electron](https://www.electronjs.org/) | Wraps the same web export in a native window (`electron/main.js` + `preload.js`) to produce a real `.exe`/NSIS installer, instead of just opening a browser tab. Chosen over Tauri specifically to avoid needing a Rust/MSVC toolchain in the dev environment. |
 | Mobile builds | [EAS Build](https://docs.expo.dev/build/introduction/) | Produces installable `.apk`/`.ipa` binaries (via `eas.json` profiles) instead of relying on Expo Go for anything beyond day-to-day development. |
-| Animation / gestures | `react-native-reanimated` + `react-native-gesture-handler`, `PanResponder` | Drives the hero panel's slide transition and the drag-to-reposition focal-point picker. |
-| Testing | Jest + `ts-jest` | Unit coverage on the store, repository, persistence, and data-normalization logic — the layers most likely to silently corrupt user data. |
+| Animation / gestures | `react-native-reanimated` + `react-native-gesture-handler`, `PanResponder` | One animation library used consistently throughout: the hero panel's slide transition, the drag-to-reposition focal-point picker, the sliding segmented-tab indicator, card-expand/list-item fades, button press-scale, and the confirm dialog's entrance. |
+| Testing | Jest + `ts-jest` | Unit coverage on the store, repository, persistence, data-normalization, list search/sort, and responsive-layout-metrics logic — the layers most likely to silently corrupt user data or regress visually in a way tests can actually catch. |
 
 ## Architecture
 
