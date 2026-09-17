@@ -60,13 +60,32 @@ Build profiles live in `eas.json`. The project is linked to the
 ## Data & settings
 
 - **Agents** — name, role, bio, hero image, and inline abilities (each with
-  its own icon/description/sound).
+  its own icon/description/sound). Abilities are edited one slot at a time
+  behind C/Q/E/X podium tabs (`AgentForm.tsx`) rather than as four stacked
+  blocks. The hero image supports a drag-to-reposition focal point
+  (`HeroImagePositioner.tsx` + `CoverImage.tsx`) so cropping isn't locked to
+  dead-center; when an agent is expanded on the Hub screen, its hero image
+  shows as a right-docked panel (`HeroPanel.tsx`) that pushes the content
+  column left, rather than a full-screen background.
 - **Weapons** — category, cost, fire rate, magazine size, damage falloff.
 - **Export/Import** (Settings → Data) — dumps/restores everything as a single
   JSON file.
 - **Audio** — optional looping ambient track + UI click sounds, each with its
-  own enable toggle and volume slider.
+  own enable toggle and volume **slider** (never percentage-button chips —
+  see `src/components/Slider.tsx`).
 - **Display** (desktop only) — fullscreen toggle and window size presets.
+- Forms (`AgentForm.tsx`, `WeaponForm.tsx`) use `FormSheetLayout.tsx` to keep
+  Save/Cancel pinned to the bottom of the sheet instead of requiring a
+  scroll to reach them.
+
+### Known open question
+
+UI spacing feels inconsistent across different desktop window sizes. A fixed
+1920×1080 reference-canvas / fixed-pixel-values fix was proposed and
+**explicitly rejected** by the user — don't re-propose that direction without
+revisiting the discussion first. Mobile layout is a related, separately
+deferred topic. Alternative (responsive/relative) approaches are still open
+to explore.
 
 ## Project layout
 
