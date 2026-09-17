@@ -9,9 +9,10 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useDesignStore } from "../data/store";
 import { seedIfEmpty } from "../data/seed";
-import { colors, spacing, typography } from "../theme";
+import { colors, spacing, typography, vignette } from "../theme";
 import { SegmentedTabs } from "../components/SegmentedTabs";
 import { AgentCard } from "../components/AgentCard";
 import { WeaponCard } from "../components/WeaponCard";
@@ -197,6 +198,12 @@ export function Hub() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <LinearGradient
+        colors={vignette.colors}
+        locations={vignette.locations}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <View style={[styles.body, showHeroPanel ? styles.bodySplit : styles.bodyLeft]}>
         <View
           style={[
@@ -243,6 +250,7 @@ export function Hub() {
               onPress={() =>
                 setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
               }
+              matte={colors.ink}
             />
           </View>
         </View>

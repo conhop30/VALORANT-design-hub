@@ -2,7 +2,8 @@ import React, { useCallback, useRef, useState } from "react";
 import { GestureResponderEvent, PanResponder, PanResponderGestureState, StyleSheet, Text, View } from "react-native";
 import { CoverImage, DEFAULT_FOCAL, ImageFocal } from "./CoverImage";
 import { Button } from "./Button";
-import { colors, radius, spacing, typography } from "../theme";
+import { CornerCut } from "./CornerCut";
+import { colors, cut, spacing, typography } from "../theme";
 
 interface HeroImagePositionerProps {
   uri: string;
@@ -76,6 +77,8 @@ export function HeroImagePositioner({ uri, focal = DEFAULT_FOCAL, onChange }: He
       >
         <CoverImage uri={uri} focal={focal} style={styles.image} onGeometry={handleGeometry} />
         <View style={[StyleSheet.absoluteFill, styles.borderOverlay]} pointerEvents="none" />
+        <CornerCut corner="topRight" size={cut.lg} matte={colors.surface} accentColor={colors.red} accentWidth={2} />
+        <CornerCut corner="bottomLeft" size={cut.lg} matte={colors.surface} accentColor={colors.red} accentWidth={2} />
       </View>
       <View style={styles.footer}>
         <Text style={typography.caption}>This is how the image will appear in the highlight panel.</Text>
@@ -97,7 +100,6 @@ const styles = StyleSheet.create({
   frame: {
     width: PREVIEW_WIDTH,
     height: PREVIEW_HEIGHT,
-    borderRadius: radius.lg,
     overflow: "hidden",
     backgroundColor: colors.surface,
   },
@@ -109,7 +111,6 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   borderOverlay: {
-    borderRadius: radius.lg,
     borderWidth: 2,
     borderColor: colors.red,
   },

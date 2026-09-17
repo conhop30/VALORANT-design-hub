@@ -40,7 +40,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           <Text style={[typography.body, styles.message]}>
             {this.state.error.message || "An unexpected error occurred."}
           </Text>
-          <Button label="Try again" onPress={this.reset} />
+          <Button label="Try again" onPress={this.reset} matte={colors.ink} />
         </View>
       );
     }

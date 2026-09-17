@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { colors, radius, spacing, typography } from "../theme";
+import { colors, spacing, typography } from "../theme";
 import { Button } from "./Button";
 
 interface ImagePickerFieldProps {
@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   thumb: {
-    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.steel,
     backgroundColor: colors.ink,

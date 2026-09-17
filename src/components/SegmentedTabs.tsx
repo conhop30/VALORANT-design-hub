@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { colors, radius, spacing } from "../theme";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { colors, spacing } from "../theme";
 import { useClickSound } from "../audio/useClickSound";
 
 interface SegmentedTabsProps<T extends string> {
@@ -47,8 +47,9 @@ export function SegmentedTabs<T extends string>({
       hasPositioned.current = true;
       return;
     }
-    indicatorX.value = withTiming(activeLayout.x, { duration: 200 });
-    indicatorWidth.value = withTiming(activeLayout.width, { duration: 200 });
+    const easing = Easing.out(Easing.quad);
+    indicatorX.value = withTiming(activeLayout.x, { duration: 140, easing });
+    indicatorWidth.value = withTiming(activeLayout.width, { duration: 140, easing });
   }, [value, activeLayout?.x, activeLayout?.width]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
@@ -86,31 +87,29 @@ export function SegmentedTabs<T extends string>({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.xs,
-    gap: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.steel,
   },
   indicator: {
     position: "absolute",
-    top: spacing.xs,
-    bottom: spacing.xs,
+    bottom: -1,
     left: 0,
+    height: 2,
     backgroundColor: colors.red,
-    borderRadius: radius.sm,
   },
   tab: {
     flex: 1,
     paddingVertical: spacing.sm,
-    borderRadius: radius.sm,
     alignItems: "center",
   },
   label: {
-    color: colors.offWhite,
-    fontWeight: "600",
-    fontSize: 14,
+    color: colors.steel,
+    fontWeight: "700",
+    fontSize: 13,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   labelActive: {
-    color: colors.ink,
+    color: colors.offWhite,
   },
 });

@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { colors, radius, spacing } from "../theme";
+import { colors, cut, spacing } from "../theme";
+import { ClippedSurface } from "./ClippedSurface";
 
 interface SheetProps {
   visible: boolean;
@@ -26,7 +28,10 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withTiming(visible ? 1 : 0, { duration: 220 });
+    progress.value = withTiming(visible ? 1 : 0, {
+      duration: visible ? 200 : 160,
+      easing: Easing.out(Easing.cubic),
+    });
   }, [visible, progress]);
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -47,9 +52,22 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
-      <Animated.View style={[styles.panel, panelStyle, { maxHeight: height * 0.88 }]}>
-        <View style={styles.handle} />
-        {children}
+      <Animated.View style={[panelStyle, { maxHeight: height * 0.88 }, styles.panelWrap]}>
+        <ClippedSurface
+          fill={colors.surface}
+          matte={colors.ink}
+          corners={["topLeft", "topRight"]}
+          cut={cut.lg}
+          borderWidth={1}
+          borderColor={colors.steel}
+          accentColor={colors.red}
+          style={styles.panel}
+        >
+          <View style={styles.handleRow}>
+            <View style={styles.tick} />
+          </View>
+          {children}
+        </ClippedSurface>
       </Animated.View>
     </View>
   );
@@ -59,24 +77,22 @@ const styles = StyleSheet.create({
   backdrop: {
     backgroundColor: "#000000",
   },
-  panel: {
+  panelWrap: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.md,
-    borderTopWidth: 1,
-    borderColor: colors.steel,
   },
-  handle: {
-    alignSelf: "center",
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.steel,
-    marginBottom: spacing.md,
+  panel: {
+    padding: spacing.md,
+  },
+  handleRow: {
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
+  tick: {
+    width: 28,
+    height: 3,
+    backgroundColor: colors.red,
   },
 });

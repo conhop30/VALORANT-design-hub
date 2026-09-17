@@ -38,7 +38,8 @@
         {
           "photosPermission": "Allow VALORANT Design Hub to access your photos to pick agent and ability artwork."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
