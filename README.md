@@ -186,16 +186,29 @@ electron/       Electron main process + preload script (desktop only)
 
 ## Roadmap
 
-- [ ] iOS build (needs a Mac simulator or Apple Developer account)
-- [ ] Resolve inconsistent UI spacing across different desktop window sizes
-      with a responsive (not fixed-pixel) layout approach — a fixed
-      1920×1080 reference-canvas fix was considered and rejected as too
-      brittle; still exploring relative-unit alternatives
-- [ ] Revisit mobile layout/spacing once the desktop responsiveness approach
-      is settled, since the two are related
-- [ ] Replace the placeholder click SFX (`click.wav`) with a real sound, to
-      match the ambient track's earlier swap to a real asset
-- [ ] Address a minor startup flash where `audioSettings` briefly shows
-      defaults before the store's async `hydrate()` loads persisted values
+- [x] Fix a startup flash where the ambient-music player could briefly act
+      on default audio settings before the store's async `hydrate()` loaded
+      the real persisted values (`AmbientMusicController.tsx` now no-ops
+      until hydration completes)
+- [x] **Responsive layout spacing** — replaced a fixed `maxWidth: 640` /
+      flush-left content column (which left a dead gutter on wide desktop
+      windows) with `src/utils/layoutMetrics.ts`, a pure, unit-tested
+      function mapping window width to a content max-width/gutter across a
+      few bands, plus centering the column instead of pinning it left. Bands
+      are loosely anchored to Electron's compact/standard/large presets but
+      apply continuously to any width — not a fixed reference canvas (that
+      approach was considered earlier and rejected as too brittle).
+- [x] **Motion polish** — replaced several instant-cut interactions with
+      `react-native-reanimated` transitions: a measured, sliding active-tab
+      indicator in `SegmentedTabs.tsx`; a fade for `ExpandableCard.tsx`'s
+      body reveal and for agent/weapon list rows on filter/sort/add/delete;
+      a press-scale on `Button.tsx`; and a scale+fade entrance for
+      `ConfirmDialog.tsx`. All reuse the animation primitives already
+      established elsewhere in the app (`Sheet.tsx`, `HeroPanel.tsx`) rather
+      than introducing a second animation approach.
+- [ ] Revisit mobile layout/spacing with the same responsive approach, since
+      the two are related
+- [ ] iOS build — deferred indefinitely (needs a Mac simulator or an Apple
+      Developer account; not currently a priority)
 
 *Last updated 2026-09-17.*

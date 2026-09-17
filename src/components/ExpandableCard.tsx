@@ -1,6 +1,6 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import Animated, { LinearTransition } from "react-native-reanimated";
+import { Pressable, StyleSheet } from "react-native";
+import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import { colors, radius, spacing } from "../theme";
 import { useClickSound } from "../audio/useClickSound";
 
@@ -26,7 +26,12 @@ export function ExpandableCard({
 }: ExpandableCardProps) {
   const playClick = useClickSound();
   return (
-    <Animated.View layout={cardLayout} style={[styles.card, { borderLeftColor: accentColor }]}>
+    <Animated.View
+      layout={cardLayout}
+      entering={FadeIn.duration(200)}
+      exiting={FadeOut.duration(150)}
+      style={[styles.card, { borderLeftColor: accentColor }]}
+    >
       <Pressable
         onPress={() => {
           playClick();
@@ -37,7 +42,11 @@ export function ExpandableCard({
       >
         {header}
       </Pressable>
-      {expanded && <View style={styles.body}>{children}</View>}
+      {expanded && (
+        <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(180)} style={styles.body}>
+          {children}
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }

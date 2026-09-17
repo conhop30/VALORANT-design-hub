@@ -26,6 +26,7 @@ import { Button } from "../components/Button";
 import { useClickSound } from "../audio/useClickSound";
 import { Agent, Weapon, ROLES, WEAPON_CATEGORIES } from "../types/entities";
 import { applySearchAndSort, SortOption } from "../utils/listQuery";
+import { getContentLayoutMetrics } from "../utils/layoutMetrics";
 
 type Library = "agents" | "weapons";
 type SheetMode =
@@ -60,6 +61,7 @@ const WEAPON_FILTER_OPTIONS = [
 export function Hub() {
   const playClick = useClickSound();
   const { width: windowWidth } = useWindowDimensions();
+  const metrics = getContentLayoutMetrics(windowWidth);
   const hydrated = useDesignStore((s) => s.hydrated);
   const hydrate = useDesignStore((s) => s.hydrate);
   const lastError = useDesignStore((s) => s.lastError);
@@ -196,7 +198,13 @@ export function Hub() {
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={[styles.body, showHeroPanel ? styles.bodySplit : styles.bodyLeft]}>
-        <View style={[styles.content, showHeroPanel && styles.contentWithHero]}>
+        <View
+          style={[
+            styles.content,
+            { maxWidth: metrics.maxWidth, paddingHorizontal: metrics.gutter },
+            showHeroPanel && [styles.contentWithHero, { flexBasis: metrics.maxWidth }],
+          ]}
+        >
           <View style={styles.topBar}>
             <Text style={typography.title}>Design Hub</Text>
             <Pressable
@@ -307,7 +315,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   bodyLeft: {
-    justifyContent: "flex-start",
+    // Once `content` hits its responsive maxWidth (see layoutMetrics.ts),
+    // centering distributes the leftover row space evenly instead of
+    // pinning the column flush-left and leaving a dead gutter on wide windows.
+    justifyContent: "center",
   },
   bodySplit: {
     justifyContent: "space-between",
@@ -315,13 +326,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     width: "100%",
-    maxWidth: 640,
-    paddingHorizontal: spacing.md,
   },
   contentWithHero: {
     flexGrow: 0,
     flexShrink: 1,
-    flexBasis: 640,
     width: "auto",
     alignSelf: "stretch",
   },

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import Animated, { ZoomIn } from "react-native-reanimated";
 import { colors, radius, spacing, typography } from "../theme";
 import { Button } from "./Button";
 import { useClickSound } from "../audio/useClickSound";
@@ -25,7 +26,7 @@ export function ConfirmDialog({ title, message, onCancel, onConfirm }: ConfirmDi
     <Modal transparent visible animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
-        <View style={styles.panel}>
+        <Animated.View entering={ZoomIn.duration(200)} style={styles.panel}>
           <Text style={typography.title}>{title}</Text>
           <Text style={[typography.body, styles.message]}>{message}</Text>
           <Pressable
@@ -47,7 +48,7 @@ export function ConfirmDialog({ title, message, onCancel, onConfirm }: ConfirmDi
             <Button label="Cancel" variant="secondary" onPress={onCancel} />
             <Button label="Delete" variant="danger" onPress={() => onConfirm(suppressFuture)} />
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

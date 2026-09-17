@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { colors, radius, spacing } from "../theme";
 import { useClickSound } from "../audio/useClickSound";
 
@@ -14,31 +15,42 @@ interface ButtonProps {
 
 export function Button({ label, onPress, variant = "primary", disabled }: ButtonProps) {
   const playClick = useClickSound();
+  const scale = useSharedValue(1);
+  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <Pressable
-      onPress={() => {
-        playClick();
-        onPress();
-      }}
-      disabled={disabled}
-      style={({ pressed }) => [
-        styles.base,
-        variant === "primary" && styles.primary,
-        variant === "secondary" && styles.secondary,
-        variant === "danger" && styles.danger,
-        pressed && !disabled && styles.pressed,
-        disabled && styles.disabled,
-      ]}
-    >
-      <Text
-        style={[
-          styles.label,
-          variant === "secondary" && styles.labelSecondary,
+    <Animated.View style={scaleStyle}>
+      <Pressable
+        onPress={() => {
+          playClick();
+          onPress();
+        }}
+        onPressIn={() => {
+          scale.value = withTiming(0.96, { duration: 80 });
+        }}
+        onPressOut={() => {
+          scale.value = withTiming(1, { duration: 120 });
+        }}
+        disabled={disabled}
+        style={({ pressed }) => [
+          styles.base,
+          variant === "primary" && styles.primary,
+          variant === "secondary" && styles.secondary,
+          variant === "danger" && styles.danger,
+          pressed && !disabled && styles.pressed,
+          disabled && styles.disabled,
         ]}
       >
-        {label}
-      </Text>
-    </Pressable>
+        <Text
+          style={[
+            styles.label,
+            variant === "secondary" && styles.labelSecondary,
+          ]}
+        >
+          {label}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
