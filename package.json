@@ -28,6 +28,7 @@
     "@types/react": "~19.2.2",
     "@types/uuid": "^10.0.0",
     "concurrently": "^10.0.5",
+    "eas-cli": "^24.7.0",
     "electron": "^44.4.1",
     "electron-builder": "^26.15.3",
     "jest": "^30.5.1",
@@ -44,7 +45,9 @@
     "dev": "concurrently -n metro,tests -c blue,green \"npm:start\" \"npm:test:watch\"",
     "export:web": "expo export --platform web --output-dir dist",
     "electron": "npm run export:web && electron electron/main.js",
-    "electron:build": "npm run export:web && electron-builder"
+    "electron:build": "npm run export:web && electron-builder",
+    "build:android": "eas build --platform android --profile preview",
+    "build:ios": "eas build --platform ios --profile preview"
   },
   "private": true,
   "build": {

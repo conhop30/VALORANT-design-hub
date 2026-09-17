@@ -7,16 +7,24 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.valorantdesignhub.app"
     },
     "android": {
+      "package": "com.valorantdesignhub.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,6 +39,12 @@
           "photosPermission": "Allow VALORANT Design Hub to access your photos to pick agent and ability artwork."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4379a130-fbcd-4f94-8687-7f40d4291180"
+      }
+    },
+    "owner": "valorant-design-hub"
   }
 }
