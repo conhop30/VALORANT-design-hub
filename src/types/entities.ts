@@ -86,12 +86,14 @@ export interface AudioSettings {
   musicEnabled: boolean;
   musicVolume: number; // 0..1
   sfxEnabled: boolean;
+  sfxVolume: number; // 0..1
 }
 
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   musicEnabled: false, // opt-in: browsers block autoplay, and it's a user preference
   musicVolume: 0.5,
   sfxEnabled: true,
+  sfxVolume: 1,
 };
 
 export interface UiSettings {

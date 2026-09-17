@@ -38,6 +38,12 @@ function toRecord<T extends { id: string }>(items: T[]): Record<string, T> {
   return Object.fromEntries(items.map((i) => [i.id, i]));
 }
 
+// Sliders fire far more often than the toggle/select controls this was
+// originally written for — debounce the actual disk write so dragging one
+// doesn't hammer SQLite/localStorage, while the in-memory state (and thus
+// live audio playback) still updates every tick.
+let audioPersistTimer: ReturnType<typeof setTimeout> | undefined;
+
 export const useDesignStore = create<DesignStore>((set, get) => ({
   hydrated: false,
   weapons: {},
@@ -128,12 +134,13 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
 
   setAudioSetting: async (key, value) => {
     const next = { ...get().audioSettings, [key]: value };
-    const res = await configRepo.setAudioSettings(next);
-    if (!res.ok) {
-      set({ lastError: res.error });
-      return;
-    }
     set({ audioSettings: next });
+
+    clearTimeout(audioPersistTimer);
+    audioPersistTimer = setTimeout(async () => {
+      const res = await configRepo.setAudioSettings(get().audioSettings);
+      if (!res.ok) set({ lastError: res.error });
+    }, 300);
   },
 
   setUiSetting: async (key, value) => {

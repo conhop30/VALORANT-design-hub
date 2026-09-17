@@ -4,19 +4,14 @@ import { colors, spacing, typography } from "../theme";
 import { useDesignStore } from "../data/store";
 import { Button } from "./Button";
 import { SelectField } from "./SelectField";
+import { Slider } from "./Slider";
 import { useClickSound } from "../audio/useClickSound";
 import { exportAllData, importAllData } from "../data/exportImport";
+import { useElectronDisplay, WINDOW_SIZE_PRESETS } from "../platform/useElectronDisplay";
 
 interface SettingsSheetProps {
   onClose: () => void;
 }
-
-const VOLUME_PRESETS = [
-  { id: "0.25", label: "25%" },
-  { id: "0.5", label: "50%" },
-  { id: "0.75", label: "75%" },
-  { id: "1", label: "100%" },
-];
 
 function ToggleRow({
   label,
@@ -52,11 +47,34 @@ function ToggleRow({
   );
 }
 
+function VolumeRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <View style={styles.volumeRow}>
+      <Text style={typography.caption}>{label}</Text>
+      <View style={styles.volumeControl}>
+        <View style={{ flex: 1 }}>
+          <Slider value={value} onChange={onChange} />
+        </View>
+        <Text style={styles.volumeValue}>{Math.round(value * 100)}%</Text>
+      </View>
+    </View>
+  );
+}
+
 export function SettingsSheet({ onClose }: SettingsSheetProps) {
   const audio = useDesignStore((s) => s.audioSettings);
   const setAudioSetting = useDesignStore((s) => s.setAudioSetting);
   const uiSettings = useDesignStore((s) => s.uiSettings);
   const setUiSetting = useDesignStore((s) => s.setUiSetting);
+  const display = useElectronDisplay();
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
   const [transferBusy, setTransferBusy] = useState(false);
 
@@ -95,6 +113,29 @@ export function SettingsSheet({ onClose }: SettingsSheetProps) {
         onChange={(v) => setUiSetting("confirmDeletes", v)}
       />
 
+      {display.available && display.state && (
+        <>
+          <View style={styles.divider} />
+          <Text style={typography.subtitle}>Display</Text>
+
+          <ToggleRow
+            label="Fullscreen"
+            hint="Run the app in fullscreen. Press F11 anytime to toggle."
+            value={display.state.fullscreen}
+            onChange={display.setFullscreen}
+          />
+
+          {!display.state.fullscreen && (
+            <SelectField
+              label="Window size"
+              options={[...WINDOW_SIZE_PRESETS]}
+              value={display.state.preset ?? undefined}
+              onChange={(id) => display.setWindowSize(id as (typeof WINDOW_SIZE_PRESETS)[number]["id"])}
+            />
+          )}
+        </>
+      )}
+
       <View style={styles.divider} />
       <Text style={typography.subtitle}>Audio</Text>
 
@@ -106,11 +147,10 @@ export function SettingsSheet({ onClose }: SettingsSheetProps) {
       />
 
       {audio.musicEnabled && (
-        <SelectField
+        <VolumeRow
           label="Music volume"
-          options={VOLUME_PRESETS}
-          value={String(audio.musicVolume)}
-          onChange={(id) => setAudioSetting("musicVolume", Number(id))}
+          value={audio.musicVolume}
+          onChange={(v) => setAudioSetting("musicVolume", v)}
         />
       )}
 
@@ -120,6 +160,14 @@ export function SettingsSheet({ onClose }: SettingsSheetProps) {
         value={audio.sfxEnabled}
         onChange={(v) => setAudioSetting("sfxEnabled", v)}
       />
+
+      {audio.sfxEnabled && (
+        <VolumeRow
+          label="Sound effects volume"
+          value={audio.sfxVolume}
+          onChange={(v) => setAudioSetting("sfxVolume", v)}
+        />
+      )}
 
       <View style={styles.divider} />
       <Text style={typography.subtitle}>Data</Text>
@@ -148,5 +196,18 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.steel,
     opacity: 0.3,
+  },
+  volumeRow: {
+    gap: spacing.xs,
+  },
+  volumeControl: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  volumeValue: {
+    ...typography.caption,
+    width: 40,
+    textAlign: "right",
   },
 });

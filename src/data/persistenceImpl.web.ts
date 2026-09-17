@@ -59,7 +59,9 @@ export const persistence: PersistenceAdapter = {
 
   async getAudioSettings() {
     const raw = localStorage.getItem(audioKey);
-    return raw ? JSON.parse(raw) : DEFAULT_AUDIO_SETTINGS;
+    // Merge over defaults so settings saved before a new field existed
+    // (e.g. sfxVolume) don't come back missing it.
+    return raw ? { ...DEFAULT_AUDIO_SETTINGS, ...JSON.parse(raw) } : DEFAULT_AUDIO_SETTINGS;
   },
 
   async setAudioSettings(settings: AudioSettings) {

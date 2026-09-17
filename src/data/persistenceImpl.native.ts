@@ -49,7 +49,8 @@ const SCHEMA = `
     id INTEGER PRIMARY KEY CHECK (id = 1),
     music_enabled INTEGER NOT NULL DEFAULT 0,
     music_volume REAL NOT NULL DEFAULT 0.5,
-    sfx_enabled INTEGER NOT NULL DEFAULT 1
+    sfx_enabled INTEGER NOT NULL DEFAULT 1,
+    sfx_volume REAL NOT NULL DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS ui_settings (
@@ -196,19 +197,22 @@ export const persistence: PersistenceAdapter = {
       musicEnabled: !!row.music_enabled,
       musicVolume: row.music_volume,
       sfxEnabled: !!row.sfx_enabled,
+      // Falls back for rows written before this column existed.
+      sfxVolume: row.sfx_volume ?? DEFAULT_AUDIO_SETTINGS.sfxVolume,
     };
   },
 
   async setAudioSettings(settings: AudioSettings) {
     const db = await getDb();
     await db.runAsync(
-      `INSERT INTO audio_settings (id, music_enabled, music_volume, sfx_enabled)
-       VALUES (1, $m, $v, $s)
-       ON CONFLICT(id) DO UPDATE SET music_enabled=$m, music_volume=$v, sfx_enabled=$s`,
+      `INSERT INTO audio_settings (id, music_enabled, music_volume, sfx_enabled, sfx_volume)
+       VALUES (1, $m, $v, $s, $sv)
+       ON CONFLICT(id) DO UPDATE SET music_enabled=$m, music_volume=$v, sfx_enabled=$s, sfx_volume=$sv`,
       {
         $m: settings.musicEnabled ? 1 : 0,
         $v: settings.musicVolume,
         $s: settings.sfxEnabled ? 1 : 0,
+        $sv: settings.sfxVolume,
       }
     );
   },
