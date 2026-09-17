@@ -1,15 +1,111 @@
 # VALORANT Design Hub
 
-A local-first tool for designing and cataloguing custom VALORANT agents (with
-their abilities) and weapons. Fully offline — no account, no backend; your
-data lives on-device (SQLite on mobile, `localStorage` on web/desktop) and
-can be exported/imported as JSON for backup or moving between devices.
+A cross-platform, fully offline app for designing and cataloguing custom
+VALORANT agents (with their abilities) and weapons. One codebase ships to
+**web, Windows desktop, and Android/iOS** from a single Expo/React Native
+project — no backend, no account: all data lives on-device and can be
+exported/imported as JSON for backup or moving between devices.
 
-Runs on three platforms from one Expo/react-native-web codebase:
+Built as a personal project to explore shipping one React Native codebase to
+every platform for real (not just "runs in Expo Go"), including packaging a
+genuine Windows installer and a signed installable Android build.
 
-- **Web** — `expo start --web`, or any static host serving `npm run export:web`'s output
-- **Desktop** — a real Windows app via Electron (see below)
-- **Mobile** — Expo Go for development; real installable Android/iOS builds via EAS Build
+## Live at a glance
+
+- **Create & browse agents** — name, role, bio, hero image with a
+  drag-to-reposition focal point, and four abilities (C/Q/E/X) each with
+  their own icon, description, and sound.
+- **Create & browse weapons** — category, cost, fire rate, magazine size,
+  damage falloff.
+- **Search, filter, and sort** both catalogs.
+- **Export/import** the entire dataset as one JSON file — the only way data
+  ever leaves the device.
+- **Ambient background music + UI click sounds**, each independently
+  toggleable with a volume slider.
+- **Desktop-only Display settings** — windowed/fullscreen toggle, window
+  size presets, state persisted across launches.
+
+## Tech stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| UI framework | React Native + [react-native-web](https://necolas.github.io/react-native-web/) via Expo | One component tree renders natively on Android/iOS *and* compiles to a static web bundle — the actual mechanism that makes "one codebase, three platforms" true here, rather than three separate UIs. |
+| Language | TypeScript | Shared entity types (`src/types/entities.ts`) are the single contract between the UI, the store, and both persistence backends — catches shape mismatches (see [Challenges](#challenges--how-they-were-solved)) at compile time. |
+| State | [Zustand](https://github.com/pmndrs/zustand) | A single small store (`src/data/store.ts`) holds agents, weapons, and settings in memory and mirrors writes to disk; chosen over Redux/Context for its minimal boilerplate in a single-developer app. |
+| Persistence | `expo-sqlite` (native) / `localStorage` (web) behind one repository interface | `src/data/persistenceImpl.native.ts` and `.web.ts` implement the same `persistenceTypes.ts` contract, so `repository.ts` and the store never know which backend they're talking to. |
+| Desktop shell | [Electron](https://www.electronjs.org/) | Wraps the same web export in a native window (`electron/main.js` + `preload.js`) to produce a real `.exe`/NSIS installer, instead of just opening a browser tab. Chosen over Tauri specifically to avoid needing a Rust/MSVC toolchain in the dev environment. |
+| Mobile builds | [EAS Build](https://docs.expo.dev/build/introduction/) | Produces installable `.apk`/`.ipa` binaries (via `eas.json` profiles) instead of relying on Expo Go for anything beyond day-to-day development. |
+| Animation / gestures | `react-native-reanimated` + `react-native-gesture-handler`, `PanResponder` | Drives the hero panel's slide transition and the drag-to-reposition focal-point picker. |
+| Testing | Jest + `ts-jest` | Unit coverage on the store, repository, persistence, and data-normalization logic — the layers most likely to silently corrupt user data. |
+
+## Architecture
+
+```
+UI (screens/components)
+        │  reads/writes
+        ▼
+Zustand store (src/data/store.ts)     ── single in-memory source of truth
+        │  save/list/remove
+        ▼
+Repository (src/data/repository.ts)   ── platform-agnostic API
+        │
+   ┌────┴─────┐
+   ▼          ▼
+SQLite     localStorage
+(native)      (web/desktop)
+```
+
+The store never touches SQLite or `localStorage` directly — it only calls
+`repository.ts`, which dispatches to whichever `persistenceImpl.*.ts` Metro
+resolves for the current platform. Adding a platform (or swapping storage
+engines) means implementing one interface, not touching UI code.
+
+## Challenges & how they were solved
+
+**Electron couldn't load Expo's web export.**
+Expo's static web export emits absolute asset paths (`/favicon.ico`,
+`/_expo/...`), which don't resolve under Electron's `file://` protocol —
+loading `index.html` directly produced a blank white window with 404s in
+the console. Fixed by having `electron/main.js` spin up a tiny
+loopback-only static file server (127.0.0.1, path-traversal-checked)
+instead of calling `loadFile`, so the app is served over `http://` exactly
+like a real deployment.
+
+**A schema refactor crashed on old saved data.**
+Abilities were originally stored as an `abilityIds` reference list, then
+folded inline into each `Agent` as a full `abilities` object. Agents saved
+under the old shape crashed with `Cannot read properties of undefined
+(reading 'C')` the moment they were reopened — an optional-chaining bug
+(`initial?.abilities.C`) only guarded against a missing agent, not a
+missing/legacy `abilities` field. Fixed with a `normalizeAgentAbilities`
+step applied in both persistence adapters' read path, so every consumer
+downstream can always trust `agent.abilities` is fully populated,
+regardless of when the record was originally saved.
+
+**EAS Build failed in CI with a lockfile error that didn't reproduce
+locally.** `npm ci` passed locally (npm 11) but failed on EAS's build
+servers (npm 10) with `Missing: typescript from lock file` — a real
+nested peer-dependency inconsistency that npm 11 tolerated silently but
+npm 10 rejected under `ci`'s strict mode. Root-caused by reproducing with
+`npx -y npm@10.9.8 ci` locally, then fixed by regenerating and committing
+the lockfile with that same npm version.
+
+**RN Web's `<Image onLoad>` silently broke the focal-point picker.**
+The hero-image drag-to-reposition UI depends on knowing the image's
+natural pixel dimensions. Reading them from `<Image onLoad>`'s
+`nativeEvent.source` worked on native but returned nothing on
+`react-native-web` — invisibly, because the browser's own CSS
+`object-fit` masked the bug by cropping correctly anyway even while the
+drag math was broken. Fixed by fetching dimensions explicitly via
+`Image.getSize(uri, ...)` instead of trusting the load event.
+
+**A global dev-machine env var made Electron silently not launch.**
+`ELECTRON_RUN_AS_NODE=1` being set in the shell profile made
+`npx electron .` silently run `main.js` under plain Node instead of
+booting Electron (symptom: `Cannot read properties of undefined (reading
+'whenReady')`, which looks like an app bug but isn't). Worked around per
+invocation with `env -u ELECTRON_RUN_AS_NODE electron ...` rather than
+chasing a phantom bug in application code.
 
 ## Getting started
 
@@ -32,16 +128,9 @@ npm run electron        # build the web export, then launch it in an Electron wi
 npm run electron:build  # produces a real NSIS installer under release/ (gitignored)
 ```
 
-The desktop app wraps the same web export in a small Electron shell
-(`electron/main.js` + `electron/preload.js`). It launches windowed by
-default; **Settings → Display** offers a fullscreen toggle and a few standard
-window size presets, and F11 also toggles fullscreen. Window size/fullscreen
-state persists across launches.
-
-Expo's static web export emits absolute asset paths (`/favicon.ico`,
-`/_expo/...`), which don't resolve under Electron's `file://` protocol —
-`main.js` works around this with a tiny loopback-only static file server
-instead of `loadFile`.
+Launches windowed by default; **Settings → Display** offers a fullscreen
+toggle and a few standard window size presets, and F11 also toggles
+fullscreen. Window size/fullscreen state persists across launches.
 
 ## Mobile (EAS Build)
 
@@ -56,6 +145,10 @@ npm run build:ios        # → needs an Apple Developer account for a real devic
 
 Build profiles live in `eas.json`. The project is linked to the
 `valorant-design-hub` Expo account (`app.json`'s `extra.eas.projectId`).
+
+**Status:** Android — done (built via EAS, installed and verified on an
+emulator). iOS — not yet attempted; needs either a Mac (free simulator
+build) or a paid Apple Developer account (real device).
 
 ## Data & settings
 
@@ -78,15 +171,6 @@ Build profiles live in `eas.json`. The project is linked to the
   Save/Cancel pinned to the bottom of the sheet instead of requiring a
   scroll to reach them.
 
-### Known open question
-
-UI spacing feels inconsistent across different desktop window sizes. A fixed
-1920×1080 reference-canvas / fixed-pixel-values fix was proposed and
-**explicitly rejected** by the user — don't re-propose that direction without
-revisiting the discussion first. Mobile layout is a related, separately
-deferred topic. Alternative (responsive/relative) approaches are still open
-to explore.
-
 ## Project layout
 
 ```
@@ -99,3 +183,19 @@ src/
   types/        shared entity types
 electron/       Electron main process + preload script (desktop only)
 ```
+
+## Roadmap
+
+- [ ] iOS build (needs a Mac simulator or Apple Developer account)
+- [ ] Resolve inconsistent UI spacing across different desktop window sizes
+      with a responsive (not fixed-pixel) layout approach — a fixed
+      1920×1080 reference-canvas fix was considered and rejected as too
+      brittle; still exploring relative-unit alternatives
+- [ ] Revisit mobile layout/spacing once the desktop responsiveness approach
+      is settled, since the two are related
+- [ ] Replace the placeholder click SFX (`click.wav`) with a real sound, to
+      match the ambient track's earlier swap to a real asset
+- [ ] Address a minor startup flash where `audioSettings` briefly shows
+      defaults before the store's async `hydrate()` loads persisted values
+
+*Last updated 2026-09-17.*
