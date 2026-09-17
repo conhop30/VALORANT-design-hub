@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { v4 as uuid } from "uuid";
 import { WEAPON_CATEGORIES, Weapon, WeaponCategory } from "../../types/entities";
 import { spacing, typography } from "../../theme";
 import { FormField, NumberField } from "../FormField";
 import { SelectField } from "../SelectField";
 import { Button } from "../Button";
+import { FormSheetLayout } from "../FormSheetLayout";
 
 interface WeaponFormProps {
   initial?: Weapon;
@@ -49,7 +50,14 @@ export function WeaponForm({ initial, onSave, onCancel }: WeaponFormProps) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ gap: spacing.md }}>
+    <FormSheetLayout
+      footer={
+        <>
+          <Button label="Cancel" variant="secondary" onPress={onCancel} />
+          <Button label="Save" onPress={handleSave} disabled={!canSave} />
+        </>
+      }
+    >
       <Text style={typography.title}>{initial ? "Edit Weapon" : "New Weapon"}</Text>
       <FormField label="Name" value={name} onChangeText={setName} placeholder="e.g. Halcyon SR-9" />
       <SelectField
@@ -81,26 +89,13 @@ export function WeaponForm({ initial, onSave, onCancel }: WeaponFormProps) {
           <NumberField label="Far" value={far} onChangeValue={setFar} placeholder="30" />
         </View>
       </View>
-      <View style={styles.actions}>
-        <Button label="Cancel" variant="secondary" onPress={onCancel} />
-        <Button label="Save" onPress={handleSave} disabled={!canSave} />
-      </View>
-    </ScrollView>
+    </FormSheetLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    maxHeight: "100%",
-  },
   row: {
     flexDirection: "row",
     gap: spacing.sm,
-  },
-  actions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: spacing.sm,
-    paddingBottom: spacing.lg,
   },
 });

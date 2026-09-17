@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDesignStore } from "../data/store";
@@ -20,7 +21,7 @@ import { WeaponForm } from "../components/forms/WeaponForm";
 import { SettingsSheet } from "../components/SettingsSheet";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ListToolbar } from "../components/ListToolbar";
-import { HeroBackdrop } from "../components/HeroBackdrop";
+import { HeroPanel } from "../components/HeroPanel";
 import { Button } from "../components/Button";
 import { useClickSound } from "../audio/useClickSound";
 import { Agent, Weapon, ROLES, WEAPON_CATEGORIES } from "../types/entities";
@@ -42,6 +43,11 @@ interface ListQuery {
 
 const DEFAULT_LIST_QUERY: ListQuery = { search: "", sort: "name-asc", filter: "all" };
 
+// Below this viewport width there isn't room for the content column plus a
+// meaningfully-sized hero panel side by side, so the hero image is simply
+// not shown rather than being squeezed into an unreadable sliver.
+const HERO_PANEL_MIN_WIDTH = 1000;
+
 const ROLE_FILTER_OPTIONS = [
   { id: "all", label: "All roles" },
   ...ROLES.map((r) => ({ id: r, label: r })),
@@ -53,6 +59,7 @@ const WEAPON_FILTER_OPTIONS = [
 
 export function Hub() {
   const playClick = useClickSound();
+  const { width: windowWidth } = useWindowDimensions();
   const hydrated = useDesignStore((s) => s.hydrated);
   const hydrate = useDesignStore((s) => s.hydrate);
   const lastError = useDesignStore((s) => s.lastError);
@@ -182,53 +189,61 @@ export function Hub() {
     );
   };
 
-  const expandedHeroUri =
-    library === "agents" && expandedId ? agents[expandedId]?.heroImageUri : undefined;
+  const expandedAgent = library === "agents" && expandedId ? agents[expandedId] : undefined;
+  const expandedHeroUri = expandedAgent?.heroImageUri;
+  const showHeroPanel = !!expandedHeroUri && windowWidth >= HERO_PANEL_MIN_WIDTH;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      {expandedHeroUri && <HeroBackdrop key={expandedId} uri={expandedHeroUri} />}
-      <View style={styles.content}>
-        <View style={styles.topBar}>
-          <Text style={typography.title}>Design Hub</Text>
-          <Pressable
-            onPress={() => {
-              playClick();
-              setSheet({ kind: "settings" });
-            }}
-            hitSlop={8}
-          >
-            <Text style={styles.gear}>⚙</Text>
-          </Pressable>
+      <View style={[styles.body, showHeroPanel ? styles.bodySplit : styles.bodyLeft]}>
+        <View style={[styles.content, showHeroPanel && styles.contentWithHero]}>
+          <View style={styles.topBar}>
+            <Text style={typography.title}>Design Hub</Text>
+            <Pressable
+              onPress={() => {
+                playClick();
+                setSheet({ kind: "settings" });
+              }}
+              hitSlop={8}
+            >
+              <Text style={styles.gear}>⚙</Text>
+            </Pressable>
+          </View>
+
+          {lastError && (
+            <Pressable style={styles.errorBanner} onPress={dismissError}>
+              <Text style={styles.errorText}>{lastError} (tap to dismiss)</Text>
+            </Pressable>
+          )}
+
+          <View style={styles.tabsWrap}>
+            <SegmentedTabs
+              value={library}
+              onChange={setLibrary}
+              options={[
+                { key: "agents", label: "Agents" },
+                { key: "weapons", label: "Weapons" },
+              ]}
+            />
+          </View>
+
+          {renderList()}
+
+          <View style={styles.fabWrap}>
+            <Button
+              label={`+ New ${library === "agents" ? "Agent" : "Weapon"}`}
+              onPress={() =>
+                setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
+              }
+            />
+          </View>
         </View>
 
-        {lastError && (
-          <Pressable style={styles.errorBanner} onPress={dismissError}>
-            <Text style={styles.errorText}>{lastError} (tap to dismiss)</Text>
-          </Pressable>
+        {showHeroPanel && (
+          <View style={styles.heroPanelWrap}>
+            <HeroPanel key={expandedId} uri={expandedHeroUri!} focal={expandedAgent?.heroFocal} />
+          </View>
         )}
-
-        <View style={styles.tabsWrap}>
-          <SegmentedTabs
-            value={library}
-            onChange={setLibrary}
-            options={[
-              { key: "agents", label: "Agents" },
-              { key: "weapons", label: "Weapons" },
-            ]}
-          />
-        </View>
-
-        {renderList()}
-
-        <View style={styles.fabWrap}>
-          <Button
-            label={`+ New ${library === "agents" ? "Agent" : "Weapon"}`}
-            onPress={() =>
-              setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
-            }
-          />
-        </View>
       </View>
 
       <Sheet visible={sheet.kind !== "none"} onClose={closeSheet}>
@@ -287,12 +302,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.ink,
   },
+  body: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  bodyLeft: {
+    justifyContent: "flex-start",
+  },
+  bodySplit: {
+    justifyContent: "space-between",
+  },
   content: {
     flex: 1,
     width: "100%",
     maxWidth: 640,
-    alignSelf: "center",
     paddingHorizontal: spacing.md,
+  },
+  contentWithHero: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 640,
+    width: "auto",
+    alignSelf: "stretch",
+  },
+  heroPanelWrap: {
+    width: 340,
+    minWidth: 240,
+    flexShrink: 1,
+    marginLeft: spacing.lg,
+    marginVertical: spacing.md,
   },
   loading: {
     flex: 1,

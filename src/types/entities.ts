@@ -77,6 +77,8 @@ export interface Agent {
   bio?: string;
   /** Portrait/splash art as a data URI — picked via expo-image-picker, stored inline. */
   heroImageUri?: string;
+  /** Focal point (0..1 each axis) kept centered when heroImageUri is cropped to the hero panel. Defaults to center when absent. */
+  heroFocal?: { x: number; y: number };
   abilities: Record<AbilitySlotKey, AgentAbility>;
   createdAt: string;
   updatedAt: string;

@@ -40,6 +40,8 @@ const SCHEMA = `
     role TEXT NOT NULL,
     bio TEXT,
     hero_image_uri TEXT,
+    hero_focal_x REAL,
+    hero_focal_y REAL,
     abilities_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -96,6 +98,8 @@ function agentToRow(a: Agent) {
     role: a.role,
     bio: a.bio ?? null,
     hero_image_uri: a.heroImageUri ?? null,
+    hero_focal_x: a.heroFocal?.x ?? null,
+    hero_focal_y: a.heroFocal?.y ?? null,
     abilities_json: JSON.stringify(a.abilities),
     created_at: a.createdAt,
     updated_at: a.updatedAt,
@@ -115,6 +119,10 @@ function rowToAgent(r: any): Agent {
     role: r.role,
     bio: r.bio ?? undefined,
     heroImageUri: r.hero_image_uri ?? undefined,
+    heroFocal:
+      r.hero_focal_x != null && r.hero_focal_y != null
+        ? { x: r.hero_focal_x, y: r.hero_focal_y }
+        : undefined,
     abilities: normalizeAgentAbilities(rawAbilities),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
@@ -161,16 +169,19 @@ export const persistence: PersistenceAdapter = {
     } else {
       const r = agentToRow(row as Agent);
       await db.runAsync(
-        `INSERT INTO agents (id, name, role, bio, hero_image_uri, abilities_json, created_at, updated_at)
-         VALUES ($id, $name, $role, $bio, $hero_image_uri, $abilities_json, $created_at, $updated_at)
+        `INSERT INTO agents (id, name, role, bio, hero_image_uri, hero_focal_x, hero_focal_y, abilities_json, created_at, updated_at)
+         VALUES ($id, $name, $role, $bio, $hero_image_uri, $hero_focal_x, $hero_focal_y, $abilities_json, $created_at, $updated_at)
          ON CONFLICT(id) DO UPDATE SET name=$name, role=$role, bio=$bio,
-           hero_image_uri=$hero_image_uri, abilities_json=$abilities_json, updated_at=$updated_at`,
+           hero_image_uri=$hero_image_uri, hero_focal_x=$hero_focal_x, hero_focal_y=$hero_focal_y,
+           abilities_json=$abilities_json, updated_at=$updated_at`,
         {
           $id: r.id,
           $name: r.name,
           $role: r.role,
           $bio: r.bio,
           $hero_image_uri: r.hero_image_uri,
+          $hero_focal_x: r.hero_focal_x,
+          $hero_focal_y: r.hero_focal_y,
           $abilities_json: r.abilities_json,
           $created_at: r.created_at,
           $updated_at: r.updated_at,
