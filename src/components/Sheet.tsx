@@ -6,8 +6,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { colors, cut, spacing } from "../theme";
-import { ClippedSurface } from "./ClippedSurface";
+import { colors, spacing } from "../theme";
 
 interface SheetProps {
   visible: boolean;
@@ -52,22 +51,11 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
-      <Animated.View style={[panelStyle, { maxHeight: height * 0.88 }, styles.panelWrap]}>
-        <ClippedSurface
-          fill={colors.surface}
-          matte={colors.ink}
-          corners={["topLeft", "topRight"]}
-          cut={cut.lg}
-          borderWidth={1}
-          borderColor={colors.steel}
-          accentColor={colors.red}
-          style={styles.panel}
-        >
-          <View style={styles.handleRow}>
-            <View style={styles.tick} />
-          </View>
-          {children}
-        </ClippedSurface>
+      <Animated.View style={[styles.panel, panelStyle, { maxHeight: height * 0.88 }]}>
+        <View style={styles.handleRow}>
+          <View style={styles.tick} />
+        </View>
+        {children}
       </Animated.View>
     </View>
   );
@@ -77,14 +65,15 @@ const styles = StyleSheet.create({
   backdrop: {
     backgroundColor: "#000000",
   },
-  panelWrap: {
+  panel: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  panel: {
+    backgroundColor: colors.surface,
     padding: spacing.md,
+    borderTopWidth: 1,
+    borderColor: colors.steel,
   },
   handleRow: {
     alignItems: "center",

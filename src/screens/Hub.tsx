@@ -250,7 +250,6 @@ export function Hub() {
               onPress={() =>
                 setSheet(library === "agents" ? { kind: "agent" } : { kind: "weapon" })
               }
-              matte={colors.ink}
             />
           </View>
         </View>

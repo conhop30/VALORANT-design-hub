@@ -11,7 +11,6 @@ import { colors, roleColors, spacing, typography } from "../theme";
 import { ExpandableCard } from "./ExpandableCard";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { ClippedSurface } from "./ClippedSurface";
 
 interface AgentCardProps {
   agent: Agent;
@@ -35,9 +34,9 @@ function AbilitySlotRow({ slot, ability }: { slot: AbilitySlotKey; ability: Agen
   const meta = abilityMetaLine(ability);
   return (
     <View style={styles.slotRow}>
-      <ClippedSurface fill={colors.red} matte={colors.surface} cut={5} style={styles.slotKey}>
+      <View style={styles.slotKey}>
         <Text style={styles.slotKeyText}>{slot}</Text>
-      </ClippedSurface>
+      </View>
       {ability.iconUri && <Image source={{ uri: ability.iconUri }} style={styles.abilityIcon} />}
       {!hasContent ? (
         <Text style={[typography.body, styles.unavailable]}>Not yet defined</Text>
@@ -93,6 +92,7 @@ const styles = StyleSheet.create({
   slotKey: {
     width: 22,
     height: 22,
+    backgroundColor: colors.red,
     alignItems: "center",
     justifyContent: "center",
   },

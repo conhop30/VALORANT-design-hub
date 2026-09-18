@@ -33,14 +33,6 @@ export const spacing = {
   xl: 32,
 } as const;
 
-/** Diagonal corner-cut sizes for `ClippedSurface`/`CornerCut` — VALORANT's UI
- * has no rounded corners, so this replaces a radius scale entirely. */
-export const cut = {
-  sm: 8,
-  md: 14,
-  lg: 22,
-} as const;
-
 /** Bundled via expo-font in App.tsx. Bebas Neue stands in for Riot's
  * proprietary display face (not licensable) as the closest free match:
  * tall, condensed, single-weight, reads correctly only in uppercase. */

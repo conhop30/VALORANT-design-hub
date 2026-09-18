@@ -1,9 +1,8 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { colors, cut, spacing } from "../theme";
+import { colors, spacing } from "../theme";
 import { useClickSound } from "../audio/useClickSound";
-import { ClippedSurface } from "./ClippedSurface";
 
 type Variant = "primary" | "secondary" | "danger";
 
@@ -12,8 +11,6 @@ interface ButtonProps {
   onPress: () => void;
   variant?: Variant;
   disabled?: boolean;
-  /** Color behind this button, for the corner-cut mask. Most buttons sit on a card/sheet's `colors.surface`. */
-  matte?: string;
 }
 
 const FILL: Record<Variant, string> = {
@@ -22,7 +19,7 @@ const FILL: Record<Variant, string> = {
   danger: colors.redDark,
 };
 
-export function Button({ label, onPress, variant = "primary", disabled, matte = colors.surface }: ButtonProps) {
+export function Button({ label, onPress, variant = "primary", disabled }: ButtonProps) {
   const playClick = useClickSound();
   const scale = useSharedValue(1);
   const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -43,17 +40,15 @@ export function Button({ label, onPress, variant = "primary", disabled, matte = 
         disabled={disabled}
         style={({ pressed }) => [pressed && !disabled && styles.pressed, disabled && styles.disabled]}
       >
-        <ClippedSurface
-          fill={FILL[variant]}
-          matte={matte}
-          cut={cut.sm}
-          borderWidth={variant === "secondary" ? 1 : 0}
-          borderColor={variant === "secondary" ? colors.steel : undefined}
-          accentColor={variant === "secondary" ? colors.steel : undefined}
-          style={styles.base}
+        <View
+          style={[
+            styles.base,
+            { backgroundColor: FILL[variant] },
+            variant === "secondary" && styles.secondary,
+          ]}
         >
           <Text style={[styles.label, variant === "secondary" && styles.labelSecondary]}>{label}</Text>
-        </ClippedSurface>
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -65,6 +60,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     alignItems: "center",
     justifyContent: "center",
+  },
+  secondary: {
+    borderWidth: 1,
+    borderColor: colors.steel,
   },
   pressed: {
     opacity: 0.8,

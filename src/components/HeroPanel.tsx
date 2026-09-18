@@ -2,9 +2,8 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { Easing, SlideInRight, SlideOutRight } from "react-native-reanimated";
-import { colors, cut } from "../theme";
+import { colors } from "../theme";
 import { CoverImage, ImageFocal } from "./CoverImage";
-import { CornerCut } from "./CornerCut";
 
 interface HeroPanelProps {
   uri: string;
@@ -36,8 +35,6 @@ export function HeroPanel({ uri, focal }: HeroPanelProps) {
         locations={[0, 0.5]}
         style={styles.leftFade}
       />
-      <CornerCut corner="topRight" size={cut.lg} matte={colors.ink} accentColor={colors.red} accentWidth={2} />
-      <CornerCut corner="bottomRight" size={cut.lg} matte={colors.ink} accentColor={colors.red} accentWidth={2} />
     </Animated.View>
   );
 }

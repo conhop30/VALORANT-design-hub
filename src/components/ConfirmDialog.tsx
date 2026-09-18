@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import Animated, { Easing, ZoomIn } from "react-native-reanimated";
-import { colors, cut, spacing, typography } from "../theme";
+import { colors, spacing, typography } from "../theme";
 import { Button } from "./Button";
-import { ClippedSurface } from "./ClippedSurface";
 import { useClickSound } from "../audio/useClickSound";
 
 interface ConfirmDialogProps {
@@ -29,40 +28,29 @@ export function ConfirmDialog({ title, message, onCancel, onConfirm }: ConfirmDi
         <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
         <Animated.View
           entering={ZoomIn.duration(160).easing(Easing.out(Easing.quad))}
-          style={styles.panelWrap}
+          style={styles.panel}
         >
-          <ClippedSurface
-            fill={colors.surface}
-            matte={colors.ink}
-            corners={["topRight", "bottomLeft"]}
-            cut={cut.md}
-            borderWidth={1}
-            borderColor={colors.steel}
-            accentColor={colors.red}
-            style={styles.panel}
+          <Text style={typography.title}>{title}</Text>
+          <Text style={[typography.body, styles.message]}>{message}</Text>
+          <Pressable
+            style={styles.toggleRow}
+            onPress={() => {
+              playClick();
+              setSuppressFuture((v) => !v);
+            }}
           >
-            <Text style={typography.title}>{title}</Text>
-            <Text style={[typography.body, styles.message]}>{message}</Text>
-            <Pressable
-              style={styles.toggleRow}
-              onPress={() => {
-                playClick();
-                setSuppressFuture((v) => !v);
-              }}
-            >
-              <Switch
-                value={suppressFuture}
-                pointerEvents="none"
-                trackColor={{ true: colors.red, false: colors.steel }}
-                thumbColor={colors.offWhite}
-              />
-              <Text style={typography.caption}>Don't ask me again for deletes</Text>
-            </Pressable>
-            <View style={styles.actions}>
-              <Button label="Cancel" variant="secondary" onPress={onCancel} />
-              <Button label="Delete" variant="danger" onPress={() => onConfirm(suppressFuture)} />
-            </View>
-          </ClippedSurface>
+            <Switch
+              value={suppressFuture}
+              pointerEvents="none"
+              trackColor={{ true: colors.red, false: colors.steel }}
+              thumbColor={colors.offWhite}
+            />
+            <Text style={typography.caption}>Don't ask me again for deletes</Text>
+          </Pressable>
+          <View style={styles.actions}>
+            <Button label="Cancel" variant="secondary" onPress={onCancel} />
+            <Button label="Delete" variant="danger" onPress={() => onConfirm(suppressFuture)} />
+          </View>
         </Animated.View>
       </View>
     </Modal>
@@ -77,12 +65,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: spacing.lg,
   },
-  panelWrap: {
+  panel: {
     width: "100%",
     maxWidth: 420,
-  },
-  panel: {
+    backgroundColor: colors.surface,
     padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.steel,
   },
   message: {
     marginTop: spacing.sm,
