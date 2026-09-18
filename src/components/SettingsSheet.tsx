@@ -7,10 +7,11 @@ import { SelectField } from "./SelectField";
 import { Slider } from "./Slider";
 import { useClickSound } from "../audio/useClickSound";
 import { exportAllData, importAllData } from "../data/exportImport";
-import { useElectronDisplay, WINDOW_SIZE_PRESETS } from "../platform/useElectronDisplay";
+import { DisplayMode, SCREEN_SIZE_OPTIONS, useElectronDisplay } from "../platform/useElectronDisplay";
 
 interface SettingsSheetProps {
   onClose: () => void;
+  display: ReturnType<typeof useElectronDisplay>;
 }
 
 function ToggleRow({
@@ -69,12 +70,11 @@ function VolumeRow({
   );
 }
 
-export function SettingsSheet({ onClose }: SettingsSheetProps) {
+export function SettingsSheet({ onClose, display }: SettingsSheetProps) {
   const audio = useDesignStore((s) => s.audioSettings);
   const setAudioSetting = useDesignStore((s) => s.setAudioSetting);
   const uiSettings = useDesignStore((s) => s.uiSettings);
   const setUiSetting = useDesignStore((s) => s.setUiSetting);
-  const display = useElectronDisplay();
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
   const [transferBusy, setTransferBusy] = useState(false);
 
@@ -118,20 +118,17 @@ export function SettingsSheet({ onClose }: SettingsSheetProps) {
           <View style={styles.divider} />
           <Text style={typography.subtitle}>Display</Text>
 
-          <ToggleRow
-            label="Fullscreen"
-            hint="Run the app in fullscreen. Press F11 anytime to toggle."
-            value={display.state.fullscreen}
-            onChange={display.setFullscreen}
+          <SelectField
+            label="Screen size"
+            options={[...SCREEN_SIZE_OPTIONS]}
+            value={display.state.mode ?? undefined}
+            onChange={(id) => display.setMode(id as DisplayMode)}
           />
 
-          {!display.state.fullscreen && (
-            <SelectField
-              label="Window size"
-              options={[...WINDOW_SIZE_PRESETS]}
-              value={display.state.preset ?? undefined}
-              onChange={(id) => display.setWindowSize(id as (typeof WINDOW_SIZE_PRESETS)[number]["id"])}
-            />
+          {display.state.mode === "fullscreen" && (
+            <Text style={typography.caption}>
+              Press Esc or F11 anytime to exit fullscreen, or use the exit button in the top corner.
+            </Text>
           )}
         </>
       )}
