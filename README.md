@@ -206,9 +206,22 @@ electron/       Electron main process + preload script (desktop only)
       `ConfirmDialog.tsx`. All reuse the animation primitives already
       established elsewhere in the app (`Sheet.tsx`, `HeroPanel.tsx`) rather
       than introducing a second animation approach.
-- [ ] Revisit mobile layout/spacing with the same responsive approach, since
-      the two are related
+- [x] **Mobile layout audit** — `layoutMetrics.ts`'s width-based bands
+      already scale down cleanly to phone widths (everything under 1024px
+      falls into one band), so that part needed no change. Auditing actual
+      phone-sized viewports (375–412px wide, 667–915px tall) with Playwright
+      found a real bug instead: the agent/weapon list `ScrollView`s in
+      `Hub.tsx` set a `contentContainerStyle` but never `style={{flex:1}}`
+      on the `ScrollView` itself, so they never got a bounded, clippable
+      height — content just overflowed unscrollable, and the
+      absolutely-positioned "+ New Agent"/"+ New Weapon" FAB silently sat on
+      top of whatever fell in that overflow (an expanded agent's later
+      abilities, on a short screen). Fixed by giving both `ScrollView`s
+      `flex: 1`; verified by scrolling past the FAB and confirming the
+      previously-obscured Edit button was genuinely clickable (not just
+      "visible"), across three phone sizes. Settings' own scroll area and
+      the form sheets were already correct and needed no change.
 - [ ] iOS build — deferred indefinitely (needs a Mac simulator or an Apple
       Developer account; not currently a priority)
 
-*Last updated 2026-09-17.*
+*Last updated 2026-09-22.*

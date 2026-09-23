@@ -138,7 +138,7 @@ export function Hub() {
           {items.length === 0 ? (
             <EmptyState label="No agents match your search." />
           ) : (
-            <ScrollView contentContainerStyle={styles.list}>
+            <ScrollView style={styles.scrollArea} contentContainerStyle={styles.list}>
               {items.map((item) => (
                 <AgentCard
                   key={item.id}
@@ -174,7 +174,7 @@ export function Hub() {
         {items.length === 0 ? (
           <EmptyState label="No weapons match your search." />
         ) : (
-          <ScrollView contentContainerStyle={styles.list}>
+          <ScrollView style={styles.scrollArea} contentContainerStyle={styles.list}>
             {items.map((item) => (
               <WeaponCard
                 key={item.id}
@@ -358,6 +358,15 @@ const styles = StyleSheet.create({
   },
   tabsWrap: {
     marginBottom: spacing.md,
+  },
+  // `flex: 1` on the ScrollView itself (not just its contentContainerStyle)
+  // is what actually bounds/clips it to the remaining space in `content` —
+  // without it, a tall list just overflows unclipped instead of scrolling,
+  // and the absolutely-positioned FAB below silently paints over it. Only
+  // shows up when content is taller than the viewport (a short window, or a
+  // phone screen), which is why it went unnoticed until a mobile pass.
+  scrollArea: {
+    flex: 1,
   },
   list: {
     paddingBottom: 96,
