@@ -47,7 +47,8 @@
     "electron": "npm run export:web && electron electron/main.js",
     "electron:build": "npm run export:web && electron-builder",
     "build:android": "eas build --platform android --profile preview",
-    "build:ios": "eas build --platform ios --profile preview"
+    "build:ios": "eas build --platform ios --profile preview",
+    "release:android": "eas build --platform android --profile production"
   },
   "private": true,
   "build": {
