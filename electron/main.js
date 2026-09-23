@@ -164,6 +164,8 @@ async function createWindow() {
     },
   });
 
+  mainWindow.on("page-title-updated", (event) => event.preventDefault());
+
   if (saved.mode === "fullscreenWindow") {
     mainWindow.maximize();
   }

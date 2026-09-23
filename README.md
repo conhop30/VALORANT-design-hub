@@ -152,6 +152,8 @@ npm run electron        # build the web export, then launch it in an Electron wi
 npm run electron:build  # produces a real NSIS installer under release/ (gitignored)
 ```
 
+**Windows — [download the installer](https://github.com/conhop30/VALORANT-design-hub/releases/latest/download/VALORANT-Design-Hub-Setup.exe)** (Windows 10/11; unsigned, so SmartScreen will say "Windows protected your PC" — choose *More info → Run anyway*). Or build it yourself with the commands above.
+
 Launches windowed by default; **Settings → Display** offers a single
 "Screen size" choice of Compact, Standard, Large, Fullscreen (window) — an
 OS maximize that keeps the title bar — or true Fullscreen, which removes all
@@ -163,13 +165,17 @@ or F11 also exit/toggle it. Screen size persists across launches.
 
 **Android — download and install directly, no Play Store.** This is a
 personal/portfolio project, not something going through Play Store review —
-[**download the latest APK**](https://github.com/conhop30/VALORANT-design-hub/releases/latest)
+[**download the latest APK**](https://github.com/conhop30/VALORANT-design-hub/releases/latest/download/VALORANT-Design-Hub.apk)
 (Android will warn about installing from outside the Play Store; that's
 expected for direct distribution, not a sign of anything wrong). Hosted as
 a [GitHub Release](https://github.com/conhop30/VALORANT-design-hub/releases) —
 permanent, unlike EAS's own build-page links, which expire after ~30 days.
-Cut a new one with `npm run release:android`, then attach the resulting
-`.apk` to a new release (`gh release create vX.Y.Z path/to/app.apk`).
+To cut a release: `npm run release:android` and `npm run electron:build`, then
+attach both files to a new release under the *unversioned* names
+`VALORANT-Design-Hub.apk` and `VALORANT-Design-Hub-Setup.exe`
+(`gh release create vX.Y.Z VALORANT-Design-Hub.apk VALORANT-Design-Hub-Setup.exe`) —
+keeping the names constant is what lets `releases/latest/download/<name>` links
+(here and on the portfolio site) always point at the newest version without edits.
 
 Expo Go is fine for day-to-day development, but for a real installable
 binary:

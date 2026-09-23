@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "valorant-agent-designer",
+    "name": "VALORANT Design Hub",
     "slug": "valorant-agent-designer",
     "version": "1.1.0",
     "orientation": "portrait",
@@ -24,7 +24,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
