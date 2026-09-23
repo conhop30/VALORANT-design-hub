@@ -161,21 +161,41 @@ or F11 also exit/toggle it. Screen size persists across launches.
 
 ## Mobile (EAS Build)
 
+**Android — download and install directly, no Play Store.** This is a
+personal/portfolio project, not something going through Play Store review —
+[**download the latest APK**](https://expo.dev/accounts/valorant-design-hub/projects/valorant-agent-designer/builds/33311118-06e9-4f54-9f16-dd908338c336)
+(Android will warn about installing from outside the Play Store; that's
+expected for direct distribution, not a sign of anything wrong). This link
+is an EAS-hosted build page, which expires ~30 days after each build — cut
+a fresh one with `npm run release:android` and update this link if it's
+gone stale.
+
 Expo Go is fine for day-to-day development, but for a real installable
 binary:
 
 ```
-npx eas login            # one-time, needs a free expo.dev account
-npm run build:android    # → installable .apk (EAS Build "preview" profile)
-npm run build:ios        # → needs an Apple Developer account for a real device
+npx eas login              # one-time, needs a free expo.dev account
+npm run build:android      # → installable .apk (EAS "preview" profile, quick dev builds)
+npm run release:android    # → installable .apk (EAS "production" profile, the real versioned release)
+npm run build:ios          # → needs an Apple Developer account for a real device
 ```
+
+Both Android profiles build a plain installable `.apk` via EAS's *internal
+distribution* (a shareable expo.dev download page + QR code) — there's no
+Play Store submission step (`eas.json`'s old `submit` config was removed).
+Two Android permissions that don't get exercised anywhere in the app —
+`RECORD_AUDIO` and `CAMERA`, both pulled in by default from
+`expo-image-picker`'s video-capture support — are explicitly disabled in
+`app.json`'s plugin config, since an unused microphone/camera permission is
+exactly the kind of thing that makes a sideloaded APK look suspicious.
 
 Build profiles live in `eas.json`. The project is linked to the
 `valorant-design-hub` Expo account (`app.json`'s `extra.eas.projectId`).
 
 **Status:** Android — done (built via EAS, installed and verified on an
-emulator). iOS — not yet attempted; needs either a Mac (free simulator
-build) or a paid Apple Developer account (real device).
+emulator, and distributed as a direct APK download). iOS — not yet
+attempted; needs either a Mac (free simulator build) or a paid Apple
+Developer account (real device).
 
 ## Data & settings
 
@@ -261,6 +281,17 @@ electron/       Electron main process + preload script (desktop only)
       previously-obscured Edit button was genuinely clickable (not just
       "visible"), across three phone sizes. Settings' own scroll area and
       the form sheets were already correct and needed no change.
+- [x] **Direct Android distribution** — decided against Play Store (no
+      review process, no developer account needed) in favor of a direct APK
+      download. Repurposed the EAS `production` profile to build a plain
+      installable `.apk` via internal distribution instead of an app bundle,
+      and dropped `eas.json`'s now-unused Play Store `submit` config. Also
+      trimmed two Android permissions the app never uses — `RECORD_AUDIO`
+      and `CAMERA` — that `expo-image-picker` pulls in by default for its
+      video-capture support; verified via a throwaway `expo prebuild` that
+      the generated manifest carries `tools:node="remove"` for both, not
+      just an absence from `app.json`'s own permissions list (a bundled
+      library manifest can otherwise merge a permission back in regardless).
 - [ ] iOS build — deferred indefinitely (needs a Mac simulator or an Apple
       Developer account; not currently a priority)
 
