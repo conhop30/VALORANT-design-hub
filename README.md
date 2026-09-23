@@ -136,12 +136,13 @@ fullscreen. Window size/fullscreen state persists across launches.
 
 **Android — download and install directly, no Play Store.** This is a
 personal/portfolio project, not something going through Play Store review —
-[**download the latest APK**](https://expo.dev/accounts/valorant-design-hub/projects/valorant-agent-designer/builds/33311118-06e9-4f54-9f16-dd908338c336)
+[**download the latest APK**](https://github.com/conhop30/VALORANT-design-hub/releases/latest)
 (Android will warn about installing from outside the Play Store; that's
-expected for direct distribution, not a sign of anything wrong). This link
-is an EAS-hosted build page, which expires ~30 days after each build — cut
-a fresh one with `npm run release:android` and update this link if it's
-gone stale.
+expected for direct distribution, not a sign of anything wrong). Hosted as
+a [GitHub Release](https://github.com/conhop30/VALORANT-design-hub/releases) —
+permanent, unlike EAS's own build-page links, which expire after ~30 days.
+Cut a new one with `npm run release:android`, then attach the resulting
+`.apk` to a new release (`gh release create vX.Y.Z path/to/app.apk`).
 
 Expo Go is fine for day-to-day development, but for a real installable
 binary:
