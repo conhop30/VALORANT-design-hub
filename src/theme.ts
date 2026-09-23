@@ -33,15 +33,36 @@ export const spacing = {
   xl: 32,
 } as const;
 
-export const radius = {
-  sm: 8,
-  md: 14,
-  lg: 20,
+/** Bundled via expo-font in App.tsx. Bebas Neue stands in for Riot's
+ * proprietary display face (not licensable) as the closest free match:
+ * tall, condensed, single-weight, reads correctly only in uppercase. */
+export const fonts = {
+  display: "BebasNeue-Regular",
 } as const;
 
 export const typography = {
-  title: { fontSize: 22, fontWeight: "700" as const, color: colors.offWhite },
-  subtitle: { fontSize: 16, fontWeight: "600" as const, color: colors.offWhite },
+  display: {
+    fontFamily: fonts.display,
+    fontSize: 30,
+    letterSpacing: 1.5,
+    color: colors.offWhite,
+    textTransform: "uppercase" as const,
+  },
+  title: {
+    fontFamily: fonts.display,
+    fontSize: 24,
+    letterSpacing: 1,
+    fontWeight: "400" as const,
+    color: colors.offWhite,
+    textTransform: "uppercase" as const,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    letterSpacing: 0.5,
+    color: colors.offWhite,
+    textTransform: "uppercase" as const,
+  },
   body: { fontSize: 14, fontWeight: "400" as const, color: colors.offWhite },
   caption: {
     fontSize: 12,
@@ -49,4 +70,13 @@ export const typography = {
     color: colors.offWhite,
     opacity: 0.75, // verified: still >4.5:1 contrast on `ink`/`surface`, unlike a raw grey
   },
+};
+
+/** Vignette gradient stops for screen backgrounds — drawn top-to-bottom, a
+ * translucent black darkening the rim and fading to fully transparent in the
+ * middle. Must be darker-than-`ink` at the stops, not `ink` itself — the
+ * page background already IS `ink`, so a same-color stop paints nothing. */
+export const vignette = {
+  colors: ["rgba(0,0,0,0.45)", "transparent", "rgba(0,0,0,0.45)"] as const,
+  locations: [0, 0.45, 1] as const,
 };

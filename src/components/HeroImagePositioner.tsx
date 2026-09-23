@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState } from "react";
 import { GestureResponderEvent, PanResponder, PanResponderGestureState, StyleSheet, Text, View } from "react-native";
 import { CoverImage, DEFAULT_FOCAL, ImageFocal } from "./CoverImage";
 import { Button } from "./Button";
-import { colors, radius, spacing, typography } from "../theme";
+import { colors, spacing, typography } from "../theme";
 
 interface HeroImagePositionerProps {
   uri: string;
@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
   frame: {
     width: PREVIEW_WIDTH,
     height: PREVIEW_HEIGHT,
-    borderRadius: radius.lg,
     overflow: "hidden",
     backgroundColor: colors.surface,
   },
@@ -109,7 +108,6 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   borderOverlay: {
-    borderRadius: radius.lg,
     borderWidth: 2,
     borderColor: colors.red,
   },

@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { colors, radius, spacing } from "../theme";
+import { colors, spacing } from "../theme";
 
 interface SheetProps {
   visible: boolean;
@@ -26,7 +27,10 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withTiming(visible ? 1 : 0, { duration: 220 });
+    progress.value = withTiming(visible ? 1 : 0, {
+      duration: visible ? 200 : 160,
+      easing: Easing.out(Easing.cubic),
+    });
   }, [visible, progress]);
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -48,7 +52,9 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
       <Animated.View style={[styles.panel, panelStyle, { maxHeight: height * 0.88 }]}>
-        <View style={styles.handle} />
+        <View style={styles.handleRow}>
+          <View style={styles.tick} />
+        </View>
         {children}
       </Animated.View>
     </View>
@@ -65,18 +71,17 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
     padding: spacing.md,
     borderTopWidth: 1,
     borderColor: colors.steel,
   },
-  handle: {
-    alignSelf: "center",
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.steel,
-    marginBottom: spacing.md,
+  handleRow: {
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
+  tick: {
+    width: 28,
+    height: 3,
+    backgroundColor: colors.red,
   },
 });

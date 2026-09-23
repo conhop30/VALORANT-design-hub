@@ -23,9 +23,11 @@ const MIME_TYPES = {
   ".map": "application/json",
 };
 
-// Kept in sync with WINDOW_SIZE_PRESETS in src/platform/useElectronDisplay.ts —
-// the renderer only ever sends a preset id over IPC, never raw pixels.
-const WINDOW_SIZE_PRESETS = {
+// Kept in sync with SCREEN_SIZE_OPTIONS in src/platform/useElectronDisplay.ts —
+// the renderer only ever sends a mode id over IPC, never raw pixels.
+// "fullscreenWindow" and "fullscreen" aren't sized presets — they're handled
+// as their own modes below (OS maximize vs. true setFullScreen).
+const SIZE_PRESETS = {
   compact: { width: 1024, height: 768 },
   standard: { width: 1280, height: 900 },
   large: { width: 1600, height: 1000 },
@@ -49,21 +51,6 @@ function saveWindowState(partial) {
   } catch {
     // Best-effort — losing remembered window geometry isn't worth surfacing an error for.
   }
-}
-
-function matchPreset(width, height) {
-  const match = Object.entries(WINDOW_SIZE_PRESETS).find(
-    ([, size]) => size.width === width && size.height === height
-  );
-  return match ? match[0] : null;
-}
-
-function getDisplayState() {
-  const [width, height] = mainWindow.getSize();
-  return {
-    fullscreen: mainWindow.isFullScreen(),
-    preset: matchPreset(width, height),
-  };
 }
 
 /**
@@ -114,6 +101,39 @@ function startServer() {
 let mainWindow;
 let resizeSaveTimer;
 
+/**
+ * Single source of truth for "what display mode are we in", derived from
+ * live window state rather than tracked separately — avoids the mode and
+ * the actual window state ever drifting out of sync.
+ */
+function getDisplayMode() {
+  if (mainWindow.isFullScreen()) return "fullscreen";
+  if (mainWindow.isMaximized()) return "fullscreenWindow";
+  const [width, height] = mainWindow.getSize();
+  const match = Object.entries(SIZE_PRESETS).find(
+    ([, size]) => size.width === width && size.height === height
+  );
+  return match ? match[0] : null;
+}
+
+function getDisplayState() {
+  return { mode: getDisplayMode() };
+}
+
+/** Persists the current mode, plus the window's last non-maximized/fullscreen
+ * size so a later "compact"/"standard"/"large" or plain drag-resize survives
+ * a relaunch even if the window is currently maximized or fullscreen. */
+function persistDisplayState() {
+  const mode = getDisplayMode();
+  const partial = { mode };
+  if (mode !== "fullscreen" && !mainWindow.isMaximized()) {
+    const [width, height] = mainWindow.getSize();
+    partial.width = width;
+    partial.height = height;
+  }
+  saveWindowState(partial);
+}
+
 async function createWindow() {
   await startServer();
 
@@ -123,8 +143,8 @@ async function createWindow() {
   // "standard" preset, capped to the actual display so it still fits on a
   // smaller screen.
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
-  const defaultWidth = Math.min(WINDOW_SIZE_PRESETS.standard.width, Math.round(screenWidth * 0.9));
-  const defaultHeight = Math.min(WINDOW_SIZE_PRESETS.standard.height, Math.round(screenHeight * 0.9));
+  const defaultWidth = Math.min(SIZE_PRESETS.standard.width, Math.round(screenWidth * 0.9));
+  const defaultHeight = Math.min(SIZE_PRESETS.standard.height, Math.round(screenHeight * 0.9));
 
   mainWindow = new BrowserWindow({
     width: saved.width ?? defaultWidth,
@@ -134,7 +154,7 @@ async function createWindow() {
     title: "VALORANT Design Hub",
     icon: path.join(__dirname, "..", "assets", "icon.png"),
     autoHideMenuBar: true,
-    fullscreen: saved.fullscreen ?? false,
+    fullscreen: saved.mode === "fullscreen",
     backgroundColor: "#0F1923",
     webPreferences: {
       contextIsolation: true,
@@ -144,46 +164,55 @@ async function createWindow() {
     },
   });
 
-  // F11 toggles fullscreen (standard convention), independent of the
-  // Settings sheet's own fullscreen toggle — both end up calling
-  // setFullScreen, and the 'enter/leave-full-screen' listeners below persist
-  // whichever one fired.
+  if (saved.mode === "fullscreenWindow") {
+    mainWindow.maximize();
+  }
+
+  // F11 and Escape both exit/toggle fullscreen — standard convention, and
+  // Escape in particular matters here: true fullscreen hides all OS window
+  // chrome (no title bar, no close/minimize buttons), so without a keyboard
+  // escape hatch a user who doesn't know F11 would be stuck relying on the
+  // in-app Settings sheet or exit button to get back to a normal window.
   mainWindow.webContents.on("before-input-event", (_event, input) => {
-    if (input.type === "keyDown" && input.key === "F11") {
+    if (input.type !== "keyDown") return;
+    if (input.key === "F11") {
       mainWindow.setFullScreen(!mainWindow.isFullScreen());
+    } else if (input.key === "Escape" && mainWindow.isFullScreen()) {
+      mainWindow.setFullScreen(false);
     }
   });
 
   mainWindow.on("resize", () => {
-    if (mainWindow.isFullScreen()) return;
+    if (mainWindow.isFullScreen() || mainWindow.isMaximized()) return;
     clearTimeout(resizeSaveTimer);
-    resizeSaveTimer = setTimeout(() => {
-      const [width, height] = mainWindow.getSize();
-      saveWindowState({ width, height });
-    }, 300);
+    resizeSaveTimer = setTimeout(persistDisplayState, 300);
   });
 
-  mainWindow.on("enter-full-screen", () => saveWindowState({ fullscreen: true }));
-  mainWindow.on("leave-full-screen", () => saveWindowState({ fullscreen: false }));
+  mainWindow.on("enter-full-screen", persistDisplayState);
+  mainWindow.on("leave-full-screen", persistDisplayState);
+  mainWindow.on("maximize", persistDisplayState);
+  mainWindow.on("unmaximize", persistDisplayState);
 
   mainWindow.loadURL(`http://127.0.0.1:${PORT}`);
 }
 
 ipcMain.handle("display:get-state", () => getDisplayState());
 
-ipcMain.handle("display:set-fullscreen", (_event, value) => {
-  mainWindow.setFullScreen(Boolean(value));
-  return getDisplayState();
-});
-
-ipcMain.handle("display:set-size", (_event, presetId) => {
-  const size = WINDOW_SIZE_PRESETS[presetId];
-  if (!size) return getDisplayState();
-  if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
-  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
-  mainWindow.setSize(Math.min(size.width, screenWidth), Math.min(size.height, screenHeight));
-  mainWindow.center();
-  saveWindowState({ width: size.width, height: size.height });
+ipcMain.handle("display:set-mode", (_event, mode) => {
+  if (mode === "fullscreen") {
+    mainWindow.setFullScreen(true);
+  } else if (mode === "fullscreenWindow") {
+    if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+    mainWindow.maximize();
+  } else if (SIZE_PRESETS[mode]) {
+    if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    const size = SIZE_PRESETS[mode];
+    const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+    mainWindow.setSize(Math.min(size.width, screenWidth), Math.min(size.height, screenHeight));
+    mainWindow.center();
+  }
+  persistDisplayState();
   return getDisplayState();
 });
 

@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
   slotKey: {
     width: 22,
     height: 22,
-    borderRadius: 6,
     backgroundColor: colors.red,
     alignItems: "center",
     justifyContent: "center",
@@ -105,7 +104,6 @@ const styles = StyleSheet.create({
   abilityIcon: {
     width: 28,
     height: 28,
-    borderRadius: 6,
   },
   unavailable: {
     fontStyle: "italic",

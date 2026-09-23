@@ -1,10 +1,10 @@
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
-import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
-import { colors, radius, spacing } from "../theme";
+import { Pressable, StyleSheet, View } from "react-native";
+import Animated, { Easing, FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
+import { colors, spacing } from "../theme";
 import { useClickSound } from "../audio/useClickSound";
 
-const cardLayout = LinearTransition.duration(220);
+const cardLayout = LinearTransition.duration(180).easing(Easing.out(Easing.quad));
 
 interface ExpandableCardProps {
   expanded: boolean;
@@ -28,10 +28,11 @@ export function ExpandableCard({
   return (
     <Animated.View
       layout={cardLayout}
-      entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(150)}
-      style={[styles.card, { borderLeftColor: accentColor }]}
+      entering={FadeIn.duration(150)}
+      exiting={FadeOut.duration(120)}
+      style={styles.card}
     >
+      <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
       <Pressable
         onPress={() => {
           playClick();
@@ -43,7 +44,7 @@ export function ExpandableCard({
         {header}
       </Pressable>
       {expanded && (
-        <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(180)} style={styles.body}>
+        <Animated.View entering={FadeIn.duration(140)} exiting={FadeOut.duration(140)} style={styles.body}>
           {children}
         </Animated.View>
       )}
@@ -54,16 +55,25 @@ export function ExpandableCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: colors.steel,
     marginBottom: spacing.sm,
     overflow: "hidden",
   },
+  accentBar: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+  },
   headerRow: {
     padding: spacing.md,
+    paddingLeft: spacing.md + 4,
   },
   body: {
     paddingHorizontal: spacing.md,
+    paddingLeft: spacing.md + 4,
     paddingBottom: spacing.md,
     gap: spacing.sm,
   },

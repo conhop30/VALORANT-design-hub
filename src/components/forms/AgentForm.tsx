@@ -11,7 +11,7 @@ import {
   Role,
   SLOT_CATEGORY,
 } from "../../types/entities";
-import { colors, radius, spacing, typography } from "../../theme";
+import { colors, spacing, typography } from "../../theme";
 import { FormField, NumberField } from "../FormField";
 import { SelectField } from "../SelectField";
 import { Button } from "../Button";
@@ -256,7 +256,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
     paddingVertical: spacing.sm,
-    borderRadius: radius.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.steel,

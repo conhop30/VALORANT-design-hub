@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { GestureResponderEvent, LayoutChangeEvent, PanResponder, StyleSheet, View } from "react-native";
-import { colors, radius } from "../theme";
+import { colors } from "../theme";
 
 interface SliderProps {
   /** 0..1 */
@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
   },
   track: {
     height: TRACK_HEIGHT,
-    borderRadius: radius.sm,
     backgroundColor: colors.surfaceAlt,
-    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.steel,
   },
   fill: {
     height: TRACK_HEIGHT,
@@ -76,9 +76,9 @@ const styles = StyleSheet.create({
     top: 3,
     width: THUMB_SIZE,
     height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
     backgroundColor: colors.offWhite,
     borderWidth: 2,
     borderColor: colors.red,
+    transform: [{ rotate: "45deg" }],
   },
 });

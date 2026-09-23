@@ -9,9 +9,10 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useDesignStore } from "../data/store";
 import { seedIfEmpty } from "../data/seed";
-import { colors, spacing, typography } from "../theme";
+import { colors, spacing, typography, vignette } from "../theme";
 import { SegmentedTabs } from "../components/SegmentedTabs";
 import { AgentCard } from "../components/AgentCard";
 import { WeaponCard } from "../components/WeaponCard";
@@ -27,6 +28,7 @@ import { useClickSound } from "../audio/useClickSound";
 import { Agent, Weapon, ROLES, WEAPON_CATEGORIES } from "../types/entities";
 import { applySearchAndSort, SortOption } from "../utils/listQuery";
 import { getContentLayoutMetrics } from "../utils/layoutMetrics";
+import { useElectronDisplay } from "../platform/useElectronDisplay";
 
 type Library = "agents" | "weapons";
 type SheetMode =
@@ -62,6 +64,7 @@ export function Hub() {
   const playClick = useClickSound();
   const { width: windowWidth } = useWindowDimensions();
   const metrics = getContentLayoutMetrics(windowWidth);
+  const display = useElectronDisplay();
   const hydrated = useDesignStore((s) => s.hydrated);
   const hydrate = useDesignStore((s) => s.hydrate);
   const lastError = useDesignStore((s) => s.lastError);
@@ -197,6 +200,24 @@ export function Hub() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <LinearGradient
+        colors={vignette.colors}
+        locations={vignette.locations}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      {display.state?.mode === "fullscreen" && (
+        <Pressable
+          style={styles.exitFullscreen}
+          hitSlop={8}
+          onPress={() => {
+            playClick();
+            display.setMode("fullscreenWindow");
+          }}
+        >
+          <Text style={styles.exitFullscreenText}>⤢ Exit Fullscreen</Text>
+        </Pressable>
+      )}
       <View style={[styles.body, showHeroPanel ? styles.bodySplit : styles.bodyLeft]}>
         <View
           style={[
@@ -277,7 +298,7 @@ export function Hub() {
             }}
           />
         )}
-        {sheet.kind === "settings" && <SettingsSheet onClose={closeSheet} />}
+        {sheet.kind === "settings" && <SettingsSheet onClose={closeSheet} display={display} />}
       </Sheet>
 
       {deleteRequest && (
@@ -309,6 +330,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.ink,
+  },
+  exitFullscreen: {
+    position: "absolute",
+    top: spacing.md,
+    right: spacing.md,
+    zIndex: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.steel,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  exitFullscreenText: {
+    color: colors.offWhite,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   body: {
     flex: 1,

@@ -1,8 +1,8 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { SlideInRight, SlideOutRight } from "react-native-reanimated";
-import { colors, radius } from "../theme";
+import Animated, { Easing, SlideInRight, SlideOutRight } from "react-native-reanimated";
+import { colors } from "../theme";
 import { CoverImage, ImageFocal } from "./CoverImage";
 
 interface HeroPanelProps {
@@ -22,8 +22,8 @@ interface HeroPanelProps {
 export function HeroPanel({ uri, focal }: HeroPanelProps) {
   return (
     <Animated.View
-      entering={SlideInRight.duration(400)}
-      exiting={SlideOutRight.duration(250)}
+      entering={SlideInRight.duration(320).easing(Easing.out(Easing.cubic))}
+      exiting={SlideOutRight.duration(200).easing(Easing.in(Easing.cubic))}
       style={styles.wrap}
       pointerEvents="none"
     >
@@ -42,7 +42,6 @@ export function HeroPanel({ uri, focal }: HeroPanelProps) {
 const styles = StyleSheet.create({
   wrap: {
     flex: 1,
-    borderRadius: radius.lg,
     overflow: "hidden",
     backgroundColor: colors.surface,
     borderWidth: 1,
