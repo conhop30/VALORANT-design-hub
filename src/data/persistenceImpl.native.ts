@@ -57,7 +57,8 @@ const SCHEMA = `
 
   CREATE TABLE IF NOT EXISTS ui_settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
-    confirm_deletes INTEGER NOT NULL DEFAULT 1
+    confirm_deletes INTEGER NOT NULL DEFAULT 1,
+    check_updates INTEGER NOT NULL DEFAULT 1
   );
 `;
 
@@ -133,6 +134,12 @@ export const persistence: PersistenceAdapter = {
   async init() {
     const db = await getDb();
     await db.execAsync(SCHEMA);
+    // CREATE TABLE IF NOT EXISTS never adds columns to a table that already
+    // exists, so installs that predate check_updates need it added explicitly.
+    const uiColumns: { name: string }[] = await db.getAllAsync("PRAGMA table_info(ui_settings)");
+    if (!uiColumns.some((c) => c.name === "check_updates")) {
+      await db.execAsync("ALTER TABLE ui_settings ADD COLUMN check_updates INTEGER NOT NULL DEFAULT 1");
+    }
   },
 
   async getAll<K extends TableName>(table: K): Promise<EntityMap[K][]> {
@@ -239,17 +246,19 @@ export const persistence: PersistenceAdapter = {
     }
     return {
       confirmDeletes: !!row.confirm_deletes,
+      checkForUpdates: !!row.check_updates,
     };
   },
 
   async setUiSettings(settings: UiSettings) {
     const db = await getDb();
     await db.runAsync(
-      `INSERT INTO ui_settings (id, confirm_deletes)
-       VALUES (1, $c)
-       ON CONFLICT(id) DO UPDATE SET confirm_deletes=$c`,
+      `INSERT INTO ui_settings (id, confirm_deletes, check_updates)
+       VALUES (1, $c, $u)
+       ON CONFLICT(id) DO UPDATE SET confirm_deletes=$c, check_updates=$u`,
       {
         $c: settings.confirmDeletes ? 1 : 0,
+        $u: settings.checkForUpdates ? 1 : 0,
       }
     );
   },

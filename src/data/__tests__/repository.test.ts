@@ -48,9 +48,9 @@ describe("repository Result wrapping", () => {
   it("delegates configRepo.setUiSettings to the persistence adapter", async () => {
     mockPersistence.setUiSettings.mockResolvedValue(undefined);
 
-    const result = await configRepo.setUiSettings({ confirmDeletes: false });
+    const result = await configRepo.setUiSettings({ confirmDeletes: false, checkForUpdates: true });
 
-    expect(mockPersistence.setUiSettings).toHaveBeenCalledWith({ confirmDeletes: false });
+    expect(mockPersistence.setUiSettings).toHaveBeenCalledWith({ confirmDeletes: false, checkForUpdates: true });
     expect(result).toEqual({ ok: true, value: undefined });
   });
 });

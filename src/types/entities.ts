@@ -100,10 +100,12 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 
 export interface UiSettings {
   confirmDeletes: boolean;
+  checkForUpdates: boolean;
 }
 
 export const DEFAULT_UI_SETTINGS: UiSettings = {
   confirmDeletes: true,
+  checkForUpdates: true,
 };
 
 export type EntityKind = "agent" | "weapon";

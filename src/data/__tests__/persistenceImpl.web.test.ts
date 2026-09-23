@@ -143,8 +143,14 @@ describe("web persistence adapter", () => {
   it("ui settings default to DEFAULT_UI_SETTINGS until set, then round-trip", async () => {
     expect(await persistence.getUiSettings()).toEqual(DEFAULT_UI_SETTINGS);
 
-    await persistence.setUiSettings({ confirmDeletes: false });
+    await persistence.setUiSettings({ confirmDeletes: false, checkForUpdates: false });
 
-    expect(await persistence.getUiSettings()).toEqual({ confirmDeletes: false });
+    expect(await persistence.getUiSettings()).toEqual({ confirmDeletes: false, checkForUpdates: false });
+  });
+
+  it("ui settings saved before checkForUpdates existed come back with its default, not undefined", async () => {
+    localStorage.setItem("valorant-agent-designer:ui_settings", JSON.stringify({ confirmDeletes: false }));
+
+    expect(await persistence.getUiSettings()).toEqual({ confirmDeletes: false, checkForUpdates: true });
   });
 });

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain } = require("electron");
+const { app, BrowserWindow, screen, ipcMain, shell } = require("electron");
 const path = require("path");
 const http = require("http");
 const fs = require("fs");
@@ -165,6 +165,13 @@ async function createWindow() {
   });
 
   mainWindow.on("page-title-updated", (event) => event.preventDefault());
+
+  // Links out of the app (e.g. the update download) open in the user's real
+  // browser, never in a new app window; only https URLs are ever passed on.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://")) shell.openExternal(url);
+    return { action: "deny" };
+  });
 
   if (saved.mode === "fullscreenWindow") {
     mainWindow.maximize();

@@ -29,6 +29,8 @@ import { Agent, Weapon, ROLES, WEAPON_CATEGORIES } from "../types/entities";
 import { applySearchAndSort, SortOption } from "../utils/listQuery";
 import { getContentLayoutMetrics } from "../utils/layoutMetrics";
 import { useElectronDisplay } from "../platform/useElectronDisplay";
+import { useUpdateCheck } from "../updates/useUpdateCheck";
+import { UpdateBanner } from "../components/UpdateBanner";
 
 type Library = "agents" | "weapons";
 type SheetMode =
@@ -74,6 +76,7 @@ export function Hub() {
   const weapons = useDesignStore((s) => s.weapons);
   const uiSettings = useDesignStore((s) => s.uiSettings);
   const setUiSetting = useDesignStore((s) => s.setUiSetting);
+  const update = useUpdateCheck(hydrated && uiSettings.checkForUpdates);
 
   const saveAgent = useDesignStore((s) => s.saveAgent);
   const removeAgent = useDesignStore((s) => s.removeAgent);
@@ -239,6 +242,14 @@ export function Hub() {
             </Pressable>
           </View>
 
+          {update.showBanner && update.result?.status === "available" && (
+            <UpdateBanner
+              version={update.result.version}
+              onDownload={update.openDownload}
+              onDismiss={update.dismiss}
+            />
+          )}
+
           {lastError && (
             <Pressable style={styles.errorBanner} onPress={dismissError}>
               <Text style={styles.errorText}>{lastError} (tap to dismiss)</Text>
@@ -298,7 +309,7 @@ export function Hub() {
             }}
           />
         )}
-        {sheet.kind === "settings" && <SettingsSheet onClose={closeSheet} display={display} />}
+        {sheet.kind === "settings" && <SettingsSheet onClose={closeSheet} display={display} update={update} />}
       </Sheet>
 
       {deleteRequest && (

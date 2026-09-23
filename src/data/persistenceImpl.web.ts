@@ -70,7 +70,9 @@ export const persistence: PersistenceAdapter = {
 
   async getUiSettings() {
     const raw = localStorage.getItem(uiKey);
-    return raw ? JSON.parse(raw) : DEFAULT_UI_SETTINGS;
+    // Merge over defaults so settings saved before a field existed (e.g.
+    // checkForUpdates) come back with it rather than undefined.
+    return raw ? { ...DEFAULT_UI_SETTINGS, ...JSON.parse(raw) } : DEFAULT_UI_SETTINGS;
   },
 
   async setUiSettings(settings: UiSettings) {

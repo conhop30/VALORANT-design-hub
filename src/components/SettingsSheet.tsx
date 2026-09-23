@@ -8,10 +8,12 @@ import { Slider } from "./Slider";
 import { useClickSound } from "../audio/useClickSound";
 import { exportAllData, importAllData } from "../data/exportImport";
 import { DisplayMode, SCREEN_SIZE_OPTIONS, useElectronDisplay } from "../platform/useElectronDisplay";
+import { UpdateCheck } from "../updates/useUpdateCheck";
 
 interface SettingsSheetProps {
   onClose: () => void;
   display: ReturnType<typeof useElectronDisplay>;
+  update: UpdateCheck;
 }
 
 function ToggleRow({
@@ -70,7 +72,21 @@ function VolumeRow({
   );
 }
 
-export function SettingsSheet({ onClose, display }: SettingsSheetProps) {
+export function SettingsSheet({ onClose, display, update }: SettingsSheetProps) {
+  const [manualCheckDone, setManualCheckDone] = useState(false);
+  const handleCheckNow = async () => {
+    await update.checkNow();
+    setManualCheckDone(true);
+  };
+  const updateStatus =
+    !manualCheckDone || update.checking
+      ? null
+      : update.result?.status === "available"
+        ? `Version ${update.result.version} is available.`
+        : update.result?.status === "current"
+          ? "You're on the latest version."
+          : "Couldn't reach the update server.";
+
   const audio = useDesignStore((s) => s.audioSettings);
   const setAudioSetting = useDesignStore((s) => s.setAudioSetting);
   const uiSettings = useDesignStore((s) => s.uiSettings);
@@ -130,6 +146,32 @@ export function SettingsSheet({ onClose, display }: SettingsSheetProps) {
               Press Esc or F11 anytime to exit fullscreen, or use the exit button in the top corner.
             </Text>
           )}
+        </>
+      )}
+
+      {update.supported && (
+        <>
+          <View style={styles.divider} />
+          <Text style={typography.subtitle}>Updates</Text>
+          <ToggleRow
+            label="Check for updates on launch"
+            hint="Contacts GitHub once at startup to look for a newer release. Nothing else is sent."
+            value={uiSettings.checkForUpdates}
+            onChange={(v) => setUiSetting("checkForUpdates", v)}
+          />
+          <Text style={typography.caption}>Installed version {update.version}</Text>
+          <View style={styles.row}>
+            <Button
+              label={update.checking ? "Checking…" : "Check now"}
+              variant="secondary"
+              onPress={handleCheckNow}
+              disabled={update.checking}
+            />
+            {updateStatus && <Text style={typography.caption}>{updateStatus}</Text>}
+            {manualCheckDone && update.result?.status === "available" && (
+              <Button label="Download" onPress={update.openDownload} />
+            )}
+          </View>
         </>
       )}
 

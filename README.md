@@ -18,8 +18,12 @@ genuine Windows installer and a signed installable Android build.
 - **Create & browse weapons** — category, cost, fire rate, magazine size,
   damage falloff.
 - **Search, filter, and sort** both catalogs.
-- **Export/import** the entire dataset as one JSON file — the only way data
-  ever leaves the device.
+- **Export/import** the entire dataset as one JSON file — the only way your
+  data ever leaves the device.
+- **Update check** (Windows and Android builds) — at launch, looks for a
+  newer GitHub release and offers a one-tap download; can be switched off, or
+  run on demand, in Settings → Updates. It's the app's only network request,
+  and it sends nothing about you or your data.
 - **Ambient background music + UI click sounds**, each independently
   toggleable with a volume slider.
 - **Desktop-only Display settings** — five screen-size options (Compact,
@@ -176,6 +180,10 @@ attach both files to a new release under the *unversioned* names
 (`gh release create vX.Y.Z VALORANT-Design-Hub.apk VALORANT-Design-Hub-Setup.exe`) —
 keeping the names constant is what lets `releases/latest/download/<name>` links
 (here and on the portfolio site) always point at the newest version without edits.
+The in-app update check depends on the same conventions: the release **tag**
+(`vX.Y.Z`) must be higher than the `version` in `package.json`/`app.json`
+(bump both together — a test enforces they match), and the asset names must
+stay as above or the banner falls back to the release page.
 
 Expo Go is fine for day-to-day development, but for a real installable
 binary:
@@ -299,6 +307,19 @@ electron/       Electron main process + preload script (desktop only)
       the generated manifest carries `tools:node="remove"` for both, not
       just an absence from `app.json`'s own permissions list (a bundled
       library manifest can otherwise merge a permission back in regardless).
+- [x] **Update check** — `src/updates/` asks GitHub's releases API for the
+      latest tag on launch (once settings have hydrated, and only if the user
+      hasn't opted out), compares it numerically against the installed
+      version, and shows an in-app banner linking to that platform's
+      installer asset. It deliberately doesn't silently download/install: an
+      Android sideload always needs the user to confirm the install, and the
+      Windows installer is unsigned. Any failure (offline, rate limit,
+      malformed payload) is treated as "nothing to report", never an error,
+      since the app is offline-first; only `https` URLs are ever opened.
+      Adding the opt-out needed a real SQLite migration (`ALTER TABLE ... ADD
+      COLUMN`), because `CREATE TABLE IF NOT EXISTS` won't add a column to an
+      existing install's table. The app's own version comes from
+      `package.json`, and a test keeps it equal to `app.json`'s.
 - [ ] iOS build — deferred indefinitely (needs a Mac simulator or an Apple
       Developer account; not currently a priority)
 
